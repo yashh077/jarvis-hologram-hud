@@ -131,6 +131,28 @@
       box-shadow: 0 0 15px var(--cyan);
     }
 
+    .stop-btn {
+      background: rgba(239, 68, 68, 0.15) !important;
+      border-color: #ef4444 !important;
+      color: #fca5a5 !important;
+      transition: all 0.2s ease;
+    }
+
+    .stop-btn:hover {
+      background: #ef4444 !important;
+      color: #fff !important;
+      box-shadow: 0 0 15px rgba(239, 68, 68, 0.7) !important;
+    }
+
+    .speaking-active {
+      animation: stopPulse 1.2s infinite alternate;
+    }
+
+    @keyframes stopPulse {
+      0% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.4); }
+      100% { box-shadow: 0 0 18px rgba(239, 68, 68, 0.9); }
+    }
+
     main {
       flex: 1;
       display: grid;
@@ -419,6 +441,7 @@
         <span id="user-display">Yashwanth Reddy | yashwanthreddy875@gmail.com</span>
       </div>
       <button class="hud-btn" onclick="syncAll()"><span id="sync-icon">🔄</span> Sync Live</button>
+      <button class="hud-btn stop-btn" onclick="stopSpeechAndSummarizing()">⏹ Stop Audio</button>
       <button class="hud-btn" onclick="runDiagnostics()">🛡️ Doctor</button>
       <button class="hud-btn" id="voice-toggle" onclick="toggleVoice()">🔊 Voice Output: ON</button>
     </div>
@@ -479,6 +502,7 @@
       <div class="input-bar">
         <input type="text" id="query-input" placeholder="Ask Jarvis about past emails, schedules, or summaries..." onkeydown="if(event.key==='Enter') sendQuery()">
         <button class="hud-btn" onclick="sendQuery()">Send</button>
+        <button class="hud-btn stop-btn" id="stop-speaking-btn" onclick="stopSpeechAndSummarizing()">⏹ Stop</button>
       </div>
     </div>
 
@@ -549,7 +573,31 @@
       const utterance = new SpeechSynthesisUtterance(clean);
       utterance.pitch = 0.9;
       utterance.rate = 1.05;
+
+      const stopBtn = document.getElementById('stop-speaking-btn');
+      if (stopBtn) stopBtn.classList.add('speaking-active');
+
+      utterance.onend = () => {
+        if (stopBtn) stopBtn.classList.remove('speaking-active');
+      };
+      utterance.onerror = () => {
+        if (stopBtn) stopBtn.classList.remove('speaking-active');
+      };
+
       window.speechSynthesis.speak(utterance);
+    }
+
+    function stopSpeechAndSummarizing() {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      const stopBtn = document.getElementById('stop-speaking-btn');
+      if (stopBtn) stopBtn.classList.remove('speaking-active');
+
+      const output = document.getElementById('jarvis-output');
+      if (output && !output.innerHTML.includes('(Vocalization stopped by user)')) {
+        output.innerHTML += '<br><span style="color:#ef4444; font-size:0.85rem;">[⏹ Vocalization stopped by user]</span>';
+      }
     }
 
     function toggleVoice() {
