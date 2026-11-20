@@ -1,6 +1,6 @@
 # J.A.R.V.I.S. — Sci-Fi Hologram AI Assistant HUD
 
-[![Live Demo](https://img.shields.io/badge/Live%20Demo-TryCloudflare-blue?style=for-the-badge&logo=cloudflare)](https://viewpicture-dog-view-paying.trycloudflare.com)
+[![Live Demo](https://img.shields.io/badge/Live%20Demo-TryCloudflare-blue?style=for-the-badge&logo=cloudflare)](https://programme-bloomberg-big-barnes.trycloudflare.com)
 [![GitHub License](https://img.shields.io/badge/License-MIT-green.svg?style=for-the-badge)](LICENSE)
 
 An interactive, futuristic **Arc Reactor Hologram AI Assistant HUD** built on **OpenJarvis**. Features real-time multi-source Gmail inbox ingestion, deep email archive search, work schedule tracking, system telemetry, and voice output synthesis (TTS).
@@ -9,7 +9,7 @@ An interactive, futuristic **Arc Reactor Hologram AI Assistant HUD** built on **
 
 ## 🌟 Live Demo
 Open the live hosted server:  
-👉 **[https://viewpicture-dog-view-paying.trycloudflare.com](https://viewpicture-dog-view-paying.trycloudflare.com)**  
+👉 **[https://programme-bloomberg-big-barnes.trycloudflare.com](https://programme-bloomberg-big-barnes.trycloudflare.com)**  
 *(Or run locally on `http://localhost:8090`)*
 
 ---
@@ -24,6 +24,7 @@ Open the live hosted server:
 - **🔵 Sci-Fi Holographic HUD:**
   - Glowing Arc Reactor core with pulsating soundwave frequency visualization.
   - Instant quick-action pills: *Morning Briefing*, *Work Schedule*, *Job Applications*, *Diagnostics*.
+  - **⏹ Instant Stop Button:** Pause / kill AI vocalization anytime.
 
 - **🔊 Voice Output (TTS):**
   - Integrated text-to-speech synthesis that vocally delivers morning briefs, summaries, and query answers.
@@ -52,8 +53,3 @@ pip install fastapi uvicorn httpx psutil
 python server.py
 ```
 Open **`http://localhost:8090`** in any browser.
-
----
-
-## 🤝 Contributing
-Contributions, issues, and feature requests are welcome! Feel free to check the issues page or submit pull requests.
