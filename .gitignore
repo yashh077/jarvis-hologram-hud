@@ -1,0 +1,6 @@
+# Ignore sensitive credentials
+credentials.json
+token.json
+__pycache__/
+*.pyc
+.env
