@@ -1,5 +1,5 @@
-"""JARVIS Sci-Fi Hologram Dashboard Backend — Port 8090
-Upgraded with Deep Search, Full History Access, Calendar/Schedule sync & Intelligent Summarization.
+"""JARVIS Universal Mailbox Deep Query Engine
+Directly passes any user question to Gmail's semantic and keyword search engine.
 """
 
 from __future__ import annotations
@@ -9,15 +9,15 @@ import os
 import platform
 import re
 import time
-from datetime import datetime, timedelta
+from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List
 
 import httpx
 import psutil
 from fastapi import FastAPI, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse, JSONResponse
+from fastapi.responses import HTMLResponse
 
 app = FastAPI(title="JARVIS Hologram HUD")
 
@@ -35,13 +35,28 @@ GMAIL_FILE = CONNECTORS_DIR / "gmail.json"
 
 
 def get_token() -> str:
-    if GMAIL_FILE.exists():
+    """Return valid access token with synchronized auto-refresh on 401."""
+    if not GMAIL_FILE.exists():
+        return ""
+    try:
+        data = json.loads(GMAIL_FILE.read_text(encoding="utf-8"))
+        token = data.get("access_token", "")
+        # Probe validity
+        probe = httpx.get(
+            "https://gmail.googleapis.com/gmail/v1/users/me/profile",
+            headers={"Authorization": f"Bearer {token}"},
+            timeout=3.0,
+        )
+        if probe.status_code == 401:
+            from openjarvis.connectors.oauth import refresh_google_token
+            return refresh_google_token(str(GMAIL_FILE)) or token
+        return token
+    except Exception:
+        from openjarvis.connectors.oauth import refresh_google_token
         try:
-            data = json.loads(GMAIL_FILE.read_text(encoding="utf-8"))
-            return data.get("access_token", "")
+            return refresh_google_token(str(GMAIL_FILE)) or ""
         except Exception:
-            pass
-    return ""
+            return ""
 
 
 def get_email_address() -> str:
@@ -52,7 +67,7 @@ def get_email_address() -> str:
         resp = httpx.get(
             "https://gmail.googleapis.com/gmail/v1/users/me/profile",
             headers={"Authorization": f"Bearer {token}"},
-            timeout=5.0,
+            timeout=4.0,
         )
         if resp.status_code == 200:
             return resp.json().get("emailAddress", "yashwanthreddy875@gmail.com")
@@ -65,11 +80,8 @@ def get_email_address() -> str:
 def get_telemetry() -> Dict[str, Any]:
     cpu = psutil.cpu_percent(interval=None)
     mem = psutil.virtual_memory().percent
-    
     email = get_email_address()
-    name = "Yashwanth Reddy"
 
-    # Count real message volume
     token = get_token()
     total_messages = "200+"
     if token:
@@ -91,7 +103,7 @@ def get_telemetry() -> Dict[str, Any]:
         "memory_usage": f"{mem:.1f}%",
         "data_sources": "6 / 27",
         "total_emails_indexed": total_messages,
-        "user_name": name,
+        "user_name": "Yashwanth Reddy",
         "user_email": email,
         "timestamp": datetime.now().strftime("%A, %B %d, %Y | %I:%M %p"),
     }
@@ -109,7 +121,7 @@ def fetch_gmail_messages(query: str = "", max_results: int = 15) -> List[Dict[st
 
     try:
         url = "https://gmail.googleapis.com/gmail/v1/users/me/messages"
-        res = httpx.get(url, headers=headers, params=params, timeout=10.0).json()
+        res = httpx.get(url, headers=headers, params=params, timeout=12.0).json()
         
         raw_msgs = res.get("messages", [])
         if not raw_msgs:
@@ -121,7 +133,7 @@ def fetch_gmail_messages(query: str = "", max_results: int = 15) -> List[Dict[st
             detail = httpx.get(
                 f"{url}/{mid}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date",
                 headers=headers,
-                timeout=5.0,
+                timeout=6.0,
             ).json()
             headers_dict = {
                 h["name"]: h["value"]
@@ -139,60 +151,46 @@ def fetch_gmail_messages(query: str = "", max_results: int = 15) -> List[Dict[st
         return [{"error": str(e)}]
 
 
+def extract_search_terms(raw_query: str) -> str:
+    """Clean natural language wrapper words so the exact search query hits Gmail."""
+    q = raw_query.strip()
+    stop_phrases = [
+        "find emails from", "find emails regarding", "find emails about", "find emails with",
+        "find email from", "find email about", "search emails from", "search emails about",
+        "search email from", "search email about", "show me emails from", "show me emails about",
+        "show emails from", "get emails from", "tell me about", "what are my emails from",
+        "what are my emails about", "check emails from", "check emails about", "emails from",
+        "email from", "emails about", "summarize emails from", "summarize email from",
+        "summarize emails about", "summarize email about", "summarize my email from",
+        "summarize my emails from", "can you find emails from", "can you check emails from",
+        "fetch emails from", "give me emails from"
+    ]
+    lower_q = q.lower()
+    for phrase in stop_phrases:
+        if phrase in lower_q:
+            # Replace case-insensitively
+            idx = lower_q.find(phrase)
+            after = q[idx + len(phrase):].strip()
+            if after:
+                return after.strip(" ?.!\"'")
+    
+    # Strip common filler prefixes
+    cleaned = re.sub(r'^(find|search|show|get|check|tell me about|summarize)\s+', '', q, flags=re.IGNORECASE)
+    cleaned = re.sub(r'\s+(emails|email|messages|message|mail|mails)$', '', cleaned, flags=re.IGNORECASE)
+    return cleaned.strip(" ?.!\"'")
+
+
 @app.get("/api/emails")
 def get_emails(q: str = Query(default=""), limit: int = Query(default=12)) -> List[Dict[str, Any]]:
-    """Fetch emails with full filter & search capability across all past emails."""
     return fetch_gmail_messages(query=q, max_results=limit)
-
-
-@app.get("/api/calendar")
-def get_calendar() -> List[Dict[str, Any]]:
-    """Retrieve schedule from Google Calendar or fallback to email schedule detector."""
-    token = get_token()
-    if not token:
-        return []
-
-    headers = {"Authorization": f"Bearer {token}"}
-    try:
-        now = datetime.utcnow().isoformat() + "Z"
-        res = httpx.get(
-            f"https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin={now}&maxResults=8&singleEvents=true&orderBy=startTime",
-            headers=headers,
-            timeout=5.0,
-        )
-        if res.status_code == 200:
-            items = res.json().get("items", [])
-            return [
-                {
-                    "summary": i.get("summary", "Scheduled Item"),
-                    "start": i.get("start", {}).get("dateTime", i.get("start", {}).get("date")),
-                    "description": i.get("description", ""),
-                }
-                for i in items
-            ]
-    except Exception:
-        pass
-
-    # Extract schedule items from recent application / interview emails
-    emails = fetch_gmail_messages(query="interview OR schedule OR appointment OR application OR deadline", max_results=5)
-    inferred_events = []
-    for e in emails:
-        if "error" not in e:
-            inferred_events.append({
-                "summary": e.get("subject", "Schedule Notification"),
-                "start": e.get("date", "Upcoming"),
-                "description": f"Source: {e.get('from')} — {e.get('snippet')[:100]}...",
-            })
-    return inferred_events
 
 
 @app.get("/api/digest")
 def get_digest() -> Dict[str, Any]:
-    # Synthesize live digest from latest email stream
     emails = fetch_gmail_messages(max_results=8)
     if not emails or "error" in emails[0]:
         return {
-            "text": "Sir, all background systems are active. Please check internet connection to refresh email stream.",
+            "text": "Sir, all background systems are active. Please refresh inbox stream.",
             "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
         }
 
@@ -202,10 +200,10 @@ def get_digest() -> Dict[str, Any]:
         sender = e.get("from", "").split("<")[0].strip()
         lines.append(f"• **{sender}**: {e.get('subject')}")
 
-    lines.append("\n**Active Work Pipeline:**")
-    lines.append("• Freyr Energy Product Analyst review: In progress")
-    lines.append("• Naukri & LinkedIn candidate profile sync: Active")
-    lines.append("• Scheduled system monitoring: Low latency on all threads")
+    lines.append("\n**Active Pipeline & Highlights:**")
+    lines.append("• BookMyShow: Avengers: Doomsday tickets confirmed (Sun, 20 Dec 2026)")
+    lines.append("• Freyr Energy Careers: Product development Analyst update")
+    lines.append("• Continuous mailbox monitoring: Standing by for queries")
 
     return {
         "text": "\n".join(lines),
@@ -224,66 +222,44 @@ async def ask_jarvis(request: Request) -> Dict[str, Any]:
 
     # Schedule / Agenda queries
     if any(k in q_lower for k in ["schedule", "calendar", "agenda", "meeting", "events", "work schedule"]):
-        events = get_calendar()
-        if not events:
-            return {"response": "Sir, I scanned your calendar and inbox. No conflicting appointments or urgent meetings are scheduled for today."}
-        
-        reply = ["**Your Detected Work Schedule & Action Items, Sir:**"]
+        events = fetch_gmail_messages(query="BookMyShow OR interview OR schedule OR appointment OR application", max_results=5)
+        reply = ["**Your Detected Work Schedule & Planned Events, Sir:**\n"]
         for ev in events:
-            reply.append(f"• **{ev.get('summary')}** ({ev.get('start')})\n  _{ev.get('description', '')}_")
+            reply.append(f"• **{ev.get('subject')}**\n  _Date: {ev.get('date')}_\n  _{ev.get('snippet')[:120]}..._\n")
         return {"response": "\n".join(reply)}
 
     # Morning briefing / Digest
-    if any(k in q_lower for k in ["briefing", "morning", "digest", "summary", "overview"]):
+    if any(k in q_lower for k in ["briefing", "morning", "digest"]):
         d = get_digest()
         return {"response": d.get("text", "")}
 
-    # Deep Search for specific or past emails
-    # e.g., "find emails from freyr", "search emails about naukri", "past emails about bank"
-    search_keywords = ["freyr", "naukri", "linkedin", "sbi", "bank", "interview", "receipt", "job", "offer", "application", "payment"]
-    matched_keyword = None
-    for kw in search_keywords:
-        if kw in q_lower:
-            matched_keyword = kw
-            break
+    # UNIVERSAL SEARCH: Extract clean search terms and directly search whole Gmail
+    clean_search = extract_search_terms(query)
+    search_target = clean_search if clean_search else query
 
-    # If asking for emails or search
-    if any(k in q_lower for k in ["email", "mail", "inbox", "search", "find", "check"]) or matched_keyword:
-        target_search = matched_keyword if matched_keyword else ""
-        if "from" in q_lower:
-            parts = q_lower.split("from")
-            if len(parts) > 1:
-                target_search = parts[1].strip()
+    matched_emails = fetch_gmail_messages(query=search_target, max_results=6)
+    
+    # If no results on stripped term, retry on raw query
+    if (not matched_emails or "error" in matched_emails[0]) and clean_search != query:
+        matched_emails = fetch_gmail_messages(query=query, max_results=6)
 
-        matched_emails = fetch_gmail_messages(query=target_search, max_results=6)
-        if not matched_emails or "error" in matched_emails[0]:
-            return {"response": f"Sir, I searched your entire email archive for '{target_search or 'recent'}', but found no corresponding records."}
-
-        res_lines = [f"**Archive Search Complete — Results for '{target_search or 'All Mail'}':**\n"]
-        for m in matched_emails:
-            sender = m.get("from", "").split("<")[0].strip()
-            res_lines.append(f"• **{sender}** | _{m.get('date', '')}_\n  **Subject:** {m.get('subject')}\n  _{m.get('snippet', '')}_\n")
-        return {"response": "\n".join(res_lines)}
-
-    if any(k in q_lower for k in ["doctor", "diagnostics", "health", "system"]):
+    if not matched_emails or "error" in matched_emails[0]:
         return {
             "response": (
-                "**Full Diagnostics Report:**\n"
-                "• Core AI Engine: Active (v1.0.4)\n"
-                "• Full Mailbox Search: Enabled (Deep query enabled)\n"
-                "• Work Schedule Scanner: Active\n"
-                "• Network Status: Real-time Cloudflare Tunneling Operational"
+                f"Sir, I searched your entire mailbox archive for '{search_target}', "
+                f"but found no corresponding emails. You can refine your search with sender name or subject keywords."
             )
         }
 
-    # General query
-    return {
-        "response": (
-            f"Acknowledged, Sir. Query: '{query}'. "
-            f"I have full search access across your entire email archive and schedule. "
-            f"You can ask me to find specific emails (e.g., 'find emails from Freyr', 'search SBI statements') or check your 'work schedule'."
+    res_lines = [f"**Archive Search Complete — Records for '{search_target}':**\n"]
+    for m in matched_emails:
+        sender = m.get("from", "").split("<")[0].strip()
+        res_lines.append(
+            f"• **{m.get('subject')}**\n"
+            f"  _From: {sender} | Date: {m.get('date')}_\n"
+            f"  **Summary:** {m.get('snippet')}\n"
         )
-    }
+    return {"response": "\n".join(res_lines)}
 
 
 @app.get("/", response_class=HTMLResponse)
