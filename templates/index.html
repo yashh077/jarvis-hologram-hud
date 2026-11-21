@@ -734,16 +734,47 @@
   </footer>
 
   <script>
+    const LIVE_BACKEND_URL = "https://whatever-alto-thumbnails-adjusted.trycloudflare.com";
     let activeUser = localStorage.getItem('jarvis_user_email') || '';
     let isConnected = localStorage.getItem('jarvis_connected') === 'true';
     let voiceEnabled = true;
 
     // Initial load
-    window.addEventListener('load', () => {
+    window.addEventListener('load', async () => {
+      // Auto-connect to live backend if reachable
+      try {
+        const resp = await fetch(`${LIVE_BACKEND_URL}/api/telemetry`, { signal: AbortSignal.timeout(4000) });
+        if (resp.ok) {
+          const telem = await resp.json();
+          if (telem && telem.user_email) {
+            setConnectedState(telem.user_email, telem);
+            loadLiveEmails();
+            return;
+          }
+        }
+      } catch (err) {
+        console.log("Live backend standby, fallback to local session state");
+      }
+
       if (isConnected && activeUser) {
         setConnectedState(activeUser);
       }
     });
+
+    async function loadLiveEmails(query = "") {
+      try {
+        const url = query ? `${LIVE_BACKEND_URL}/api/emails?q=${encodeURIComponent(query)}&limit=15` : `${LIVE_BACKEND_URL}/api/emails?limit=15`;
+        const res = await fetch(url);
+        if (res.ok) {
+          const emails = await res.json();
+          if (Array.isArray(emails) && emails.length > 0 && !emails[0].error) {
+            renderEmails(emails);
+          }
+        }
+      } catch (e) {
+        console.error("Failed to load live emails:", e);
+      }
+    }
 
     function openLinkModal() {
       document.getElementById('link-modal').style.display = 'flex';
@@ -771,21 +802,27 @@
       speakText(`Mailbox successfully linked for ${email}. Ingestion pipelines operational.`);
     }
 
-    function setConnectedState(email) {
+    function setConnectedState(email, telem = null) {
       document.getElementById('status-dot').classList.add('connected');
       document.getElementById('user-display').innerText = email;
       document.getElementById('tel-user').innerText = email.split('@')[0];
-      document.getElementById('tel-mail-status').innerText = 'Connected (Secure)';
+      document.getElementById('tel-mail-status').innerText = 'Connected (Live)';
       document.getElementById('tel-mail-status').style.color = 'var(--green)';
       document.getElementById('mail-connection-label').innerText = '● Connected (Live)';
       document.getElementById('mail-connection-label').style.color = 'var(--green)';
       document.getElementById('unlink-btn').style.display = 'inline-flex';
-      document.getElementById('tel-emails').innerText = '250+ Messages';
+      
+      if (telem) {
+        document.getElementById('tel-emails').innerText = (telem.total_emails_indexed || '30,000+') + ' Messages';
+        if (telem.host_platform) document.getElementById('tel-platform').innerText = telem.host_platform;
+      } else {
+        document.getElementById('tel-emails').innerText = '250+ Messages';
+      }
 
       document.getElementById('jarvis-output').innerHTML = `
         <b>• Connection Established:</b><br>
-        Successfully synchronized with <b>${email}</b>.<br>
-        Ready to search, synthesize morning digests, or extract action items.
+        Successfully synchronized with live mailbox: <b>${email}</b>.<br>
+        Autonomous search, schedule analysis, and speech synthesis active.
       `;
     }
 
@@ -895,13 +932,29 @@
       input.value = '';
       const output = document.getElementById('jarvis-output');
 
-      if (!localStorage.getItem('jarvis_connected')) {
-        output.innerHTML = `Please click <b>"Set Up Gmail Access"</b> or <b>"Try Interactive Demo"</b> above to start querying your emails.`;
-        speakText("Please link your Gmail account or start demo mode.");
-        return;
+      output.innerHTML = `<i>Querying live mailbox archive for: "${escapeHtml(q)}" ...</i>`;
+
+      // 1. Try querying the LIVE BACKEND
+      try {
+        const resp = await fetch(`${LIVE_BACKEND_URL}/api/ask`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ query: q }),
+          signal: AbortSignal.timeout(12000)
+        });
+        if (resp.ok) {
+          const data = await resp.json();
+          if (data && data.response) {
+            output.innerHTML = data.response.replace(/\n/g, '<br>');
+            speakText(data.response);
+            return;
+          }
+        }
+      } catch (err) {
+        console.log("Live backend query fallback:", err);
       }
 
-      output.innerHTML = `<i>Querying mailbox archive for: "${escapeHtml(q)}" ...</i>`;
+      // 2. Fallback to client-side demo if backend is offline or disconnected
       const q_lower = q.toLowerCase();
 
       // Morning Briefing
@@ -927,7 +980,7 @@
         return;
       }
 
-      // Search match in demo/live archive
+      // Search match in demo archive
       const cleanTerm = q.replace(/^(see now|find|search|show me|check|what are my)\s+(emails?|messages?|mails?)?\s*(from|about|regarding)?/i, '').trim();
       const hits = DEMO_EMAILS.filter(e => 
         e.from.toLowerCase().includes(cleanTerm.toLowerCase()) || 
