@@ -155,11 +155,12 @@ def extract_search_terms(raw_query: str) -> str:
     """Clean natural language wrapper words so the exact search query hits Gmail."""
     q = raw_query.strip()
     stop_phrases = [
-        "find emails from", "find emails regarding", "find emails about", "find emails with",
+        "what are my emails regarding", "what are my emails about", "what are my emails from",
+        "find emails regarding", "find emails about", "find emails from", "find emails with",
         "find email from", "find email about", "search emails from", "search emails about",
         "search email from", "search email about", "show me emails from", "show me emails about",
-        "show emails from", "get emails from", "tell me about", "what are my emails from",
-        "what are my emails about", "check emails from", "check emails about", "emails from",
+        "show emails from", "get emails from", "tell me about",
+        "check emails from", "check emails about", "emails from",
         "email from", "emails about", "summarize emails from", "summarize email from",
         "summarize emails about", "summarize email about", "summarize my email from",
         "summarize my emails from", "can you find emails from", "can you check emails from",
