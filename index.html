@@ -7,6 +7,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <!-- Google Identity Services client library for client-side OAuth -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <style>
     :root {
       --bg: #030814;
@@ -18,6 +20,7 @@
       --green: #22c55e;
       --text-main: #b8e2f2;
       --text-dim: #5c849e;
+      --red: #ef4444;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
@@ -104,6 +107,11 @@
       animation: pulse 1.8s infinite;
     }
 
+    .pulse-dot.disconnected {
+      background: #eab308;
+      box-shadow: 0 0 8px #eab308;
+    }
+
     @keyframes pulse {
       0%, 100% { opacity: 1; transform: scale(1); }
       50% { opacity: 0.4; transform: scale(0.85); }
@@ -129,6 +137,20 @@
       background: var(--cyan);
       color: #030814;
       box-shadow: 0 0 15px var(--cyan);
+    }
+
+    .link-gmail-btn {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(34, 197, 94, 0.25));
+      border: 1.5px solid var(--cyan-bright);
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
+    }
+
+    .link-gmail-btn:hover {
+      background: var(--cyan-bright);
+      color: #030814;
+      box-shadow: 0 0 20px var(--cyan-bright);
     }
 
     .stop-btn {
@@ -191,7 +213,6 @@
       gap: 6px;
     }
 
-    /* INBOX SEARCH BAR */
     .inbox-filter-bar {
       display: flex;
       gap: 6px;
@@ -263,7 +284,6 @@
       overflow: hidden;
     }
 
-    /* CENTER ORB & CHAT */
     .center-col { display: flex; flex-direction: column; gap: 14px; }
 
     .orb-stage {
@@ -327,7 +347,6 @@
     .wave-bar:nth-child(5) { animation-delay: 0.3s; }
     @keyframes soundJump { 0%, 100% { height: 4px; } 50% { height: 14px; } }
 
-    /* QUICK PILLS */
     .quick-actions {
       display: flex;
       flex-wrap: wrap;
@@ -352,7 +371,6 @@
       color: #fff;
     }
 
-    /* RESPONSE TERMINAL BOX */
     .terminal-output {
       background: rgba(2, 8, 20, 0.92);
       border: 1px solid rgba(0, 229, 255, 0.3);
@@ -384,7 +402,6 @@
       box-shadow: 0 0 10px rgba(0, 229, 255, 0.3);
     }
 
-    /* RIGHT COLUMN */
     .telemetry-row {
       display: flex;
       justify-content: space-between;
@@ -411,6 +428,40 @@
       font-size: 0.8rem;
     }
 
+    /* OAUTH MODAL FOR DIRECT INGESTION */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      top: 0; left: 0; width: 100vw; height: 100vh;
+      background: rgba(2, 6, 18, 0.88);
+      backdrop-filter: blur(10px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .modal-card {
+      background: rgba(6, 18, 38, 0.95);
+      border: 2px solid var(--cyan);
+      box-shadow: 0 0 35px rgba(0, 229, 255, 0.5);
+      border-radius: 12px;
+      width: 90%;
+      max-width: 520px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+      position: relative;
+    }
+
+    .modal-close {
+      position: absolute;
+      top: 14px; right: 18px;
+      color: var(--cyan);
+      font-size: 1.5rem;
+      cursor: pointer;
+    }
+
     footer {
       display: flex;
       justify-content: space-between;
@@ -431,19 +482,25 @@
       <div class="arc-reactor-logo"></div>
       <div class="brand-title">
         <h1>J.A.R.V.I.S.</h1>
-        <p>OPENJARVIS V1.0.4 AI ASSISTANT</p>
+        <p>OPENJARVIS V1.0.4 UNIVERSAL AI ASSISTANT</p>
       </div>
     </div>
 
     <div class="header-actions">
+      <!-- Universal Link Gmail Button -->
+      <button class="hud-btn link-gmail-btn" onclick="initiateGoogleLogin()">
+        <span style="font-size:1rem;">🔑</span> Link Gmail Account
+      </button>
+
       <div class="user-pill">
-        <span class="pulse-dot"></span>
-        <span id="user-display">Yashwanth Reddy | yashwanthreddy875@gmail.com</span>
+        <span class="pulse-dot" id="status-dot"></span>
+        <span id="user-display">Guest User | No Account Linked</span>
       </div>
-      <button class="hud-btn" onclick="syncAll()"><span id="sync-icon">🔄</span> Sync Live</button>
+
+      <button class="hud-btn" onclick="syncAll()"><span id="sync-icon">🔄</span> Sync</button>
       <button class="hud-btn stop-btn" onclick="stopSpeechAndSummarizing()">⏹ Stop Audio</button>
-      <button class="hud-btn" onclick="runDiagnostics()">🛡️ Doctor</button>
-      <button class="hud-btn" id="voice-toggle" onclick="toggleVoice()">🔊 Voice Output: ON</button>
+      <button class="hud-btn" id="voice-toggle" onclick="toggleVoice()">🔊 Voice: ON</button>
+      <button class="hud-btn" id="logout-btn" style="display:none; border-color:var(--red); color:var(--red);" onclick="unlinkAccount()">Unlink</button>
     </div>
   </header>
 
@@ -454,7 +511,7 @@
     <div class="panel">
       <div class="panel-header">
         <h2>📥 Mail Archive & Inbox</h2>
-        <span style="font-size:0.75rem; color:var(--green)">● All Mail Access</span>
+        <span style="font-size:0.75rem; color:var(--text-dim)" id="mail-connection-label">● Standby</span>
       </div>
 
       <div class="inbox-filter-bar">
@@ -463,7 +520,11 @@
       </div>
 
       <div class="inbox-list" id="inbox-feed">
-        <div style="text-align:center; padding: 20px; color:var(--text-dim)">Fetching live Gmail inbox...</div>
+        <div style="text-align:center; padding: 25px 15px; color:var(--text-dim)">
+          <div style="font-size:1.8rem; margin-bottom:8px;">📬</div>
+          <b>No Gmail Account Linked</b><br>
+          <span style="font-size:0.8rem;">Click <b>"Link Gmail Account"</b> in the top bar to securely connect your inbox in 1 click!</span>
+        </div>
       </div>
     </div>
 
@@ -488,19 +549,19 @@
       <div class="quick-actions">
         <button class="pill-btn" onclick="quickAsk('Morning Briefing')">🌅 Morning Briefing</button>
         <button class="pill-btn" onclick="quickAsk('What is my work schedule and upcoming action items?')">📅 Work Schedule</button>
-        <button class="pill-btn" onclick="quickAsk('Find emails from Freyr Energy')">⚡ Freyr Energy Updates</button>
-        <button class="pill-btn" onclick="quickAsk('Check emails regarding job applications')">💼 Job Applications</button>
-        <button class="pill-btn" onclick="quickAsk('Search emails about bank or statement')">🏦 Bank Statements</button>
+        <button class="pill-btn" onclick="quickAsk('Check my recent emails')">✉️ Recent Emails</button>
+        <button class="pill-btn" onclick="quickAsk('Search emails about job applications')">💼 Job Applications</button>
+        <button class="pill-btn" onclick="quickAsk('Run system diagnostics')">🛡️ Diagnostics</button>
       </div>
 
       <div class="terminal-output" id="jarvis-output">
-        <b>• Full Archive Access Enabled:</b> You can now query any past emails, job applications, or company correspondences.<br>
-        <b>• Work Schedule & Agenda Sync:</b> Active background scanner for interview calls, calendar events, and action items.<br>
-        <b>• Tip:</b> Ask naturally in the box below, e.g.: <i>"Summarize my email from Freyr Energy"</i> or <i>"What are my past emails from Naukri?"</i>
+        <b>• Welcome to J.A.R.V.I.S. Universal Assistant:</b><br>
+        Connect your Gmail account using the button on the top right to start exploring your personal emails, schedules, and automated briefings.<br>
+        <b>• Privacy First:</b> Authentication tokens are stored locally on your device in your browser session and never sent to third-party clouds.
       </div>
 
       <div class="input-bar">
-        <input type="text" id="query-input" placeholder="Ask Jarvis about past emails, schedules, or summaries..." onkeydown="if(event.key==='Enter') sendQuery()">
+        <input type="text" id="query-input" placeholder="Ask Jarvis to search, summarize, or inspect your emails..." onkeydown="if(event.key==='Enter') sendQuery()">
         <button class="hud-btn" onclick="sendQuery()">Send</button>
         <button class="hud-btn stop-btn" id="stop-speaking-btn" onclick="stopSpeechAndSummarizing()">⏹ Stop</button>
       </div>
@@ -514,43 +575,31 @@
       </div>
 
       <div class="telemetry-row">
-        <span>Host Platform:</span>
-        <span id="tel-platform">Windows 64-bit</span>
+        <span>Host Engine:</span>
+        <span>OpenJarvis v1.0.4</span>
       </div>
       <div class="telemetry-row">
-        <span>OpenJarvis Engine:</span>
-        <span>v1.0.4 AI Assistant</span>
+        <span>Active User:</span>
+        <span id="tel-user">Guest</span>
       </div>
       <div class="telemetry-row">
-        <span>CPU Utilization:</span>
-        <span id="tel-cpu">--%</span>
+        <span>Mailbox Status:</span>
+        <span id="tel-mail-status" style="color:#eab308">Not Connected</span>
       </div>
       <div class="telemetry-row">
-        <span>Memory Usage:</span>
-        <span id="tel-mem">--%</span>
-      </div>
-      <div class="telemetry-row">
-        <span>Emails Indexed:</span>
-        <span id="tel-emails">200+ Messages</span>
+        <span>Messages Indexed:</span>
+        <span id="tel-emails">0 Messages</span>
       </div>
 
       <div class="panel-header" style="margin-top: 14px;">
         <h2>📅 Work Schedule & Action Items</h2>
-        <span style="font-size:0.75rem; color:var(--green)">Live</span>
+        <span style="font-size:0.75rem; color:var(--cyan)">Scanner</span>
       </div>
 
       <div class="schedule-box" id="schedule-list">
         <div class="schedule-item">
-          <b>Freyr Energy Analyst</b><br>
-          <span style="color:var(--cyan)">Next Step Application Pipeline</span>
-        </div>
-        <div class="schedule-item">
-          <b>Naukri Profile Visibility</b><br>
-          <span style="color:var(--text-dim)">Intern / Trainee applications active</span>
-        </div>
-        <div class="schedule-item">
-          <b>SBI Statement Audit</b><br>
-          <span style="color:var(--text-dim)">Latest monthly statement logged</span>
+          <b>Schedule Scanner Standing By</b><br>
+          <span style="color:var(--text-dim)">Link your Gmail to auto-detect meetings, appointments & deadlines</span>
         </div>
       </div>
     </div>
@@ -560,11 +609,332 @@
   <!-- FOOTER -->
   <footer>
     <span>OPENJARVIS MULTI-MODAL PLATFORM // ARCHITECTURE: AUTONOMOUS AGENT</span>
-    <span>PORT: 8090 // USER: YASHWANTH REDDY (yashwanthreddy875@gmail.com)</span>
+    <span>STATUS: READY // UNIVERSAL CLIENT MODE ACTIVE</span>
   </footer>
 
+  <!-- CLIENT-SIDE GOOGLE AUTH & DATA SCRIPT -->
   <script>
+    const CLIENT_ID = '750687175555-kgdho59g0d9uathpgreb2gflpd53alfk.apps.googleusercontent.com';
+    const SCOPES = 'https://www.googleapis.com/auth/gmail.readonly';
+
+    let tokenClient = null;
+    let userAccessToken = localStorage.getItem('jarvis_access_token') || '';
+    let userEmail = localStorage.getItem('jarvis_user_email') || '';
     let voiceEnabled = true;
+
+    // Initialize Google OAuth Token Client on load
+    window.addEventListener('load', () => {
+      if (window.google) {
+        initTokenClient();
+      } else {
+        const checkGoogle = setInterval(() => {
+          if (window.google) {
+            clearInterval(checkGoogle);
+            initTokenClient();
+          }
+        }, 300);
+      }
+
+      if (userAccessToken) {
+        onAuthSuccess(userAccessToken);
+      }
+    });
+
+    function initTokenClient() {
+      tokenClient = google.accounts.oauth2.initTokenClient({
+        client_id: CLIENT_ID,
+        scope: SCOPES,
+        callback: async (tokenResponse) => {
+          if (tokenResponse && tokenResponse.access_token) {
+            userAccessToken = tokenResponse.access_token;
+            localStorage.setItem('jarvis_access_token', userAccessToken);
+            await fetchUserProfile(userAccessToken);
+            onAuthSuccess(userAccessToken);
+          }
+        },
+      });
+    }
+
+    function initiateGoogleLogin() {
+      if (!tokenClient) {
+        alert("Google Authentication service initializing. Please try again in 3 seconds.");
+        return;
+      }
+      // Request access token with popup
+      tokenClient.requestAccessToken({ prompt: 'consent' });
+    }
+
+    async function fetchUserProfile(token) {
+      try {
+        const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/profile', {
+          headers: { 'Authorization': `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          userEmail = data.emailAddress;
+          localStorage.setItem('jarvis_user_email', userEmail);
+          document.getElementById('tel-emails').innerText = (data.messagesTotal || '0') + ' Messages';
+        }
+      } catch (err) {
+        console.error("Profile fetch error:", err);
+      }
+    }
+
+    function onAuthSuccess(token) {
+      document.getElementById('status-dot').classList.remove('disconnected');
+      document.getElementById('status-dot').style.background = 'var(--green)';
+      document.getElementById('user-display').innerText = userEmail || 'Account Linked';
+      document.getElementById('tel-user').innerText = (userEmail ? userEmail.split('@')[0] : 'User');
+      document.getElementById('tel-mail-status').innerText = 'Connected';
+      document.getElementById('tel-mail-status').style.color = 'var(--green)';
+      document.getElementById('mail-connection-label').innerText = '● Connected (Live)';
+      document.getElementById('mail-connection-label').style.color = 'var(--green)';
+      document.getElementById('logout-btn').style.display = 'inline-flex';
+
+      loadEmails();
+      speakText("Gmail account linked successfully, Sir. All inbox ingestion channels are active.");
+    }
+
+    function unlinkAccount() {
+      localStorage.removeItem('jarvis_access_token');
+      localStorage.removeItem('jarvis_user_email');
+      userAccessToken = '';
+      userEmail = '';
+
+      document.getElementById('status-dot').classList.add('disconnected');
+      document.getElementById('user-display').innerText = 'Guest User | No Account Linked';
+      document.getElementById('tel-user').innerText = 'Guest';
+      document.getElementById('tel-mail-status').innerText = 'Not Connected';
+      document.getElementById('tel-mail-status').style.color = '#eab308';
+      document.getElementById('mail-connection-label').innerText = '● Standby';
+      document.getElementById('mail-connection-label').style.color = 'var(--text-dim)';
+      document.getElementById('logout-btn').style.display = 'none';
+      document.getElementById('inbox-feed').innerHTML = `
+        <div style="text-align:center; padding: 25px 15px; color:var(--text-dim)">
+          <div style="font-size:1.8rem; margin-bottom:8px;">📬</div>
+          <b>No Gmail Account Linked</b><br>
+          <span style="font-size:0.8rem;">Click <b>"Link Gmail Account"</b> to connect your inbox.</span>
+        </div>`;
+      document.getElementById('schedule-list').innerHTML = `
+        <div class="schedule-item">
+          <b>Schedule Scanner Standing By</b><br>
+          <span style="color:var(--text-dim)">Link your Gmail to detect events</span>
+        </div>`;
+    }
+
+    async function loadEmails(query = '') {
+      if (!userAccessToken) return;
+
+      const container = document.getElementById('inbox-feed');
+      container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--cyan)">Scanning Gmail inbox...</div>`;
+
+      try {
+        let url = 'https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=15';
+        if (query) url += `&q=${encodeURIComponent(query)}`;
+
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${userAccessToken}` }
+        });
+
+        if (res.status === 401) {
+          // Token expired, re-authenticate
+          initiateGoogleLogin();
+          return;
+        }
+
+        const data = await res.json();
+        const rawMsgs = data.messages || [];
+
+        if (rawMsgs.length === 0) {
+          container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-dim)">No emails found matching your query.</div>`;
+          return;
+        }
+
+        // Fetch metadata for messages
+        const emailPromises = rawMsgs.slice(0, 10).map(async (m) => {
+          const detailRes = await fetch(
+            `https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
+            { headers: { 'Authorization': `Bearer ${userAccessToken}` } }
+          );
+          const detail = await detailRes.json();
+          const headers = {};
+          (detail.payload?.headers || []).forEach(h => headers[h.name] = h.value);
+          return {
+            id: m.id,
+            from: headers['From'] || 'Unknown',
+            subject: headers['Subject'] || '(No Subject)',
+            date: headers['Date'] || '',
+            snippet: detail.snippet || ''
+          };
+        });
+
+        const emails = await Promise.all(emailPromises);
+
+        container.innerHTML = emails.map(e => `
+          <div class="inbox-card" onclick="summarizeCard('${escapeHtml(e.from)}', '${escapeHtml(e.subject)}', '${escapeHtml(e.snippet)}')">
+            <div class="card-top">
+              <span>${escapeHtml(e.from.split('<')[0])}</span>
+              <span style="font-size:0.7rem; color:var(--text-dim);">${escapeHtml(e.date ? e.date.split(' ').slice(1,4).join(' ') : '')}</span>
+            </div>
+            <div class="card-subject">${escapeHtml(e.subject)}</div>
+            <div class="card-snippet">${escapeHtml(e.snippet)}</div>
+          </div>
+        `).join('');
+
+        // Also populate schedule scanner with relevant items
+        updateScheduleItems(emails);
+
+      } catch (err) {
+        container.innerHTML = `<div style="color:var(--red); padding:10px;">Error syncing mail: ${err.message}</div>`;
+      }
+    }
+
+    function updateScheduleItems(emails) {
+      const scheduleContainer = document.getElementById('schedule-list');
+      const keywords = ['interview', 'appointment', 'schedule', 'tickets', 'booking', 'deadline', 'meeting'];
+      const scheduleHits = emails.filter(e => {
+        const text = (e.subject + ' ' + e.snippet).toLowerCase();
+        return keywords.some(k => text.includes(k));
+      });
+
+      if (scheduleHits.length > 0) {
+        scheduleContainer.innerHTML = scheduleHits.slice(0, 4).map(e => `
+          <div class="schedule-item">
+            <b>${escapeHtml(e.subject.slice(0, 40))}...</b><br>
+            <span style="color:var(--cyan); font-size:0.75rem;">${escapeHtml(e.from.split('<')[0])} | ${escapeHtml(e.date ? e.date.split(' ').slice(1,4).join(' ') : '')}</span>
+          </div>
+        `).join('');
+      }
+    }
+
+    function searchInbox() {
+      const q = document.getElementById('inbox-search').value.trim();
+      loadEmails(q);
+    }
+
+    function summarizeCard(from, subject, snippet) {
+      const output = document.getElementById('jarvis-output');
+      const text = `Email from ${from}. Subject: ${subject}. Content summary: ${snippet}`;
+      output.innerHTML = `<b>📧 Message Summary:</b><br>• <b>From:</b> ${from}<br>• <b>Subject:</b> ${subject}<br>• <b>Brief:</b> ${snippet}`;
+      speakText(text);
+    }
+
+    async function sendQuery() {
+      const input = document.getElementById('query-input');
+      const q = input.value.trim();
+      if (!q) return;
+
+      input.value = '';
+      const output = document.getElementById('jarvis-output');
+
+      if (!userAccessToken) {
+        output.innerHTML = `Sir, please link your Gmail account using the <b>"Link Gmail Account"</b> button above so I can search and summarize your emails.`;
+        speakText("Please link your Gmail account first, Sir.");
+        return;
+      }
+
+      output.innerHTML = `<i>Querying live mailbox archive for: "${escapeHtml(q)}" ...</i>`;
+
+      const q_lower = q.toLowerCase();
+
+      // Morning Briefing request
+      if (q_lower.includes('briefing') || q_lower.includes('morning') || q_lower.includes('digest')) {
+        await generateClientBriefing();
+        return;
+      }
+
+      // Clean search term
+      const cleanTerm = cleanNaturalQuery(q);
+      try {
+        let url = `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=5&q=${encodeURIComponent(cleanTerm || q)}`;
+        const res = await fetch(url, {
+          headers: { 'Authorization': `Bearer ${userAccessToken}` }
+        });
+        const data = await res.json();
+        const msgs = data.messages || [];
+
+        if (msgs.length === 0) {
+          const noMatch = `Sir, I searched your entire mailbox for "${cleanTerm || q}", but found no matching records.`;
+          output.innerHTML = noMatch;
+          speakText(noMatch);
+          return;
+        }
+
+        const details = await Promise.all(msgs.slice(0, 3).map(async m => {
+          const r = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`, {
+            headers: { 'Authorization': `Bearer ${userAccessToken}` }
+          });
+          const d = await r.json();
+          const headers = {};
+          (d.payload?.headers || []).forEach(h => headers[h.name] = h.value);
+          return { from: headers['From'] || 'Unknown', subject: headers['Subject'] || '(No Subject)', snippet: d.snippet || '' };
+        }));
+
+        let responseHTML = `<b>Archive Search Complete — Records for "${cleanTerm || q}":</b><br>`;
+        let speakResponse = `I found records for ${cleanTerm || q}. `;
+
+        details.forEach(d => {
+          responseHTML += `• <b>${escapeHtml(d.from.split('<')[0])}:</b> ${escapeHtml(d.subject)}<br>&nbsp;&nbsp;<i>${escapeHtml(d.snippet.slice(0, 110))}...</i><br>`;
+          speakResponse += `From ${d.from.split('<')[0]}: ${d.subject}. `;
+        });
+
+        output.innerHTML = responseHTML;
+        speakText(speakResponse);
+
+      } catch (err) {
+        output.innerHTML = `<span style="color:var(--red)">Failed to search: ${err.message}</span>`;
+      }
+    }
+
+    async function generateClientBriefing() {
+      const output = document.getElementById('jarvis-output');
+      try {
+        const res = await fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=5', {
+          headers: { 'Authorization': `Bearer ${userAccessToken}` }
+        });
+        const data = await res.json();
+        const msgs = data.messages || [];
+
+        const details = await Promise.all(msgs.slice(0, 4).map(async m => {
+          const r = await fetch(`https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject`, {
+            headers: { 'Authorization': `Bearer ${userAccessToken}` }
+          });
+          const d = await r.json();
+          const headers = {};
+          (d.payload?.headers || []).forEach(h => headers[h.name] = h.value);
+          return { from: headers['From'] || 'Unknown', subject: headers['Subject'] || '(No Subject)' };
+        }));
+
+        let brief = `Sir, here is your synchronized briefing.<br><br><b>Key Inbox Correspondence:</b><br>`;
+        let speech = `Sir, here is your synchronized morning briefing. Key correspondence includes: `;
+
+        details.forEach(d => {
+          const sender = d.from.split('<')[0].trim();
+          brief += `• <b>${sender}:</b> ${d.subject}<br>`;
+          speech += `From ${sender}: ${d.subject}. `;
+        });
+
+        brief += `<br><b>System Status:</b> All background telemetry monitoring nominal.`;
+        speech += `All background telemetry nominal.`;
+
+        output.innerHTML = brief;
+        speakText(speech);
+
+      } catch (err) {
+        output.innerHTML = `Failed to generate briefing: ${err.message}`;
+      }
+    }
+
+    function cleanNaturalQuery(str) {
+      return str.replace(/^(see now|now|please|can you|find|search|show me|get|tell me about|check)\s+(emails?|messages?|mails?)?\s*(from|about|regarding)?/i, '')
+                .replace(/\s+(emails?|messages?|mails?)$/i, '')
+                .trim();
+    }
+
+    function quickAsk(q) {
+      document.getElementById('query-input').value = q;
+      sendQuery();
+    }
 
     function speakText(text) {
       if (!voiceEnabled || !window.speechSynthesis) return;
@@ -577,12 +947,8 @@
       const stopBtn = document.getElementById('stop-speaking-btn');
       if (stopBtn) stopBtn.classList.add('speaking-active');
 
-      utterance.onend = () => {
-        if (stopBtn) stopBtn.classList.remove('speaking-active');
-      };
-      utterance.onerror = () => {
-        if (stopBtn) stopBtn.classList.remove('speaking-active');
-      };
+      utterance.onend = () => { if (stopBtn) stopBtn.classList.remove('speaking-active'); };
+      utterance.onerror = () => { if (stopBtn) stopBtn.classList.remove('speaking-active'); };
 
       window.speechSynthesis.speak(utterance);
     }
@@ -596,103 +962,26 @@
 
       const output = document.getElementById('jarvis-output');
       if (output && !output.innerHTML.includes('(Vocalization stopped by user)')) {
-        output.innerHTML += '<br><span style="color:#ef4444; font-size:0.85rem;">[⏹ Vocalization stopped by user]</span>';
+        output.innerHTML += '<br><span style="color:var(--red); font-size:0.85rem;">[⏹ Vocalization stopped by user]</span>';
       }
     }
 
     function toggleVoice() {
       voiceEnabled = !voiceEnabled;
-      document.getElementById('voice-toggle').innerText = voiceEnabled ? "🔊 Voice Output: ON" : "🔇 Voice Output: OFF";
-    }
-
-    async function loadTelemetry() {
-      try {
-        const res = await fetch('/api/telemetry');
-        const data = await res.json();
-        document.getElementById('tel-platform').innerText = data.host_platform;
-        document.getElementById('tel-cpu').innerText = data.cpu_utilization;
-        document.getElementById('tel-mem').innerText = data.memory_usage;
-        document.getElementById('tel-emails').innerText = data.total_emails_indexed + ' Messages';
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    async function loadEmails(query = '') {
-      try {
-        const url = query ? `/api/emails?q=${encodeURIComponent(query)}&limit=15` : '/api/emails?limit=15';
-        const res = await fetch(url);
-        const emails = await res.json();
-        const container = document.getElementById('inbox-feed');
-        if (!emails || emails.length === 0 || emails[0].error) {
-          container.innerHTML = `<div style="text-align:center; padding:20px; color:var(--text-dim)">No emails found matching query.</div>`;
-          return;
-        }
-
-        container.innerHTML = emails.map(e => `
-          <div class="inbox-card" onclick="quickAsk('Summarize email from ${escapeHtml(e.from.split('<')[0])}: ${escapeHtml(e.subject)}')">
-            <div class="card-top">
-              <span>${escapeHtml(e.from.split('<')[0])}</span>
-              <span style="font-size:0.7rem; color:var(--text-dim);">${escapeHtml(e.date ? e.date.split(' ').slice(1,4).join(' ') : '')}</span>
-            </div>
-            <div class="card-subject">${escapeHtml(e.subject)}</div>
-            <div class="card-snippet">${escapeHtml(e.snippet)}</div>
-          </div>
-        `).join('');
-      } catch (e) {
-        console.error(e);
-      }
-    }
-
-    function searchInbox() {
-      const q = document.getElementById('inbox-search').value.trim();
-      loadEmails(q);
-    }
-
-    async function sendQuery() {
-      const input = document.getElementById('query-input');
-      const q = input.value.trim();
-      if (!q) return;
-
-      input.value = '';
-      const output = document.getElementById('jarvis-output');
-      output.innerHTML = `<i>Searching full mailbox and schedule archive for: "${escapeHtml(q)}" ...</i>`;
-
-      try {
-        const res = await fetch('/api/ask', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ query: q })
-        });
-        const data = await res.json();
-        output.innerHTML = data.response.replace(/\n/g, '<br>');
-        speakText(data.response);
-      } catch (e) {
-        output.innerHTML = `<span style="color:#ef4444">Error contacting Jarvis engine: ${e.message}</span>`;
-      }
-    }
-
-    function quickAsk(q) {
-      document.getElementById('query-input').value = q;
-      sendQuery();
-    }
-
-    function runDiagnostics() {
-      quickAsk("Run full system diagnostics and check doctor");
+      document.getElementById('voice-toggle').innerText = voiceEnabled ? "🔊 Voice: ON" : "🔇 Voice: OFF";
     }
 
     function syncAll() {
-      loadTelemetry();
-      loadEmails();
+      if (userAccessToken) {
+        loadEmails();
+      } else {
+        initiateGoogleLogin();
+      }
     }
 
     function escapeHtml(str) {
       return (str || '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
     }
-
-    loadTelemetry();
-    loadEmails();
-    setInterval(loadTelemetry, 5000);
   </script>
 </body>
 </html>
