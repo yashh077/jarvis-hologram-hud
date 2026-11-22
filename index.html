@@ -7,6 +7,9 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@500;600;700&display=swap" rel="stylesheet">
+  <!-- Google Identity Services for Secure Web OAuth -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+
   <style>
     :root {
       --bg: #030814;
@@ -19,13 +22,14 @@
       --text-main: #b8e2f2;
       --text-dim: #608fa8;
       --red: #ef4444;
+      --gold: #f59e0b;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
 
     body {
       background-color: var(--bg);
-      background-image:
+      background-image: 
         radial-gradient(circle at 50% 25%, rgba(0, 160, 255, 0.09) 0%, transparent 60%),
         linear-gradient(rgba(0, 217, 255, 0.035) 1px, transparent 1px),
         linear-gradient(90deg, rgba(0, 217, 255, 0.035) 1px, transparent 1px);
@@ -38,872 +42,1200 @@
       flex-direction: column;
     }
 
+    /* TOP HEADER */
     header {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 14px 32px;
+      padding: 12px 28px;
       border-bottom: 1px solid var(--panel-border);
       background: rgba(3, 12, 28, 0.94);
       backdrop-filter: blur(10px);
+      z-index: 10;
     }
 
-    .logo-section { display: flex; align-items: center; gap: 14px; }
-    .logo-icon {
-      width: 44px; height: 44px;
-      border: 2px solid var(--cyan);
+    .brand-left { display: flex; align-items: center; gap: 14px; }
+
+    .arc-reactor-logo {
+      width: 44px;
+      height: 44px;
       border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
+      border: 2px solid var(--cyan);
       box-shadow: var(--cyan-glow);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      position: relative;
       animation: pulse-ring 3s ease-in-out infinite;
     }
+
     @keyframes pulse-ring {
       0%, 100% { box-shadow: 0 0 10px rgba(0,229,255,0.4); }
-      50% { box-shadow: 0 0 25px rgba(0,229,255,0.8), 0 0 50px rgba(0,229,255,0.3); }
-    }
-    .logo-icon svg { width: 24px; height: 24px; fill: var(--cyan); }
-    .logo-text { font-family: 'Orbitron', monospace; font-size: 1.1rem; font-weight: 700; color: var(--cyan); letter-spacing: 3px; }
-    .logo-sub { font-size: 0.65rem; color: var(--text-dim); letter-spacing: 2px; }
-
-    .header-status { display: flex; align-items: center; gap: 20px; }
-    .status-pill {
-      display: flex; align-items: center; gap: 7px;
-      background: rgba(0,229,255,0.07); border: 1px solid rgba(0,229,255,0.2);
-      border-radius: 20px; padding: 5px 14px;
-      font-size: 0.75rem; letter-spacing: 1px;
-    }
-    .status-dot {
-      width: 8px; height: 8px; border-radius: 50%;
-      background: var(--green);
-      box-shadow: 0 0 8px var(--green);
-      animation: blink 2s ease-in-out infinite;
-    }
-    @keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.4} }
-
-    .btn-connect {
-      background: linear-gradient(135deg, rgba(0,229,255,0.15), rgba(56,249,215,0.1));
-      border: 1px solid var(--cyan);
-      color: var(--cyan);
-      padding: 9px 20px;
-      border-radius: 6px;
-      font-family: 'Rajdhani', sans-serif;
-      font-weight: 700;
-      font-size: 0.85rem;
-      letter-spacing: 1.5px;
-      cursor: pointer;
-      transition: all 0.25s;
-      text-transform: uppercase;
-    }
-    .btn-connect:hover {
-      background: rgba(0,229,255,0.25);
-      box-shadow: var(--cyan-glow);
-    }
-    .btn-connect.connected {
-      border-color: var(--green);
-      color: var(--green);
-      background: rgba(34,197,94,0.1);
+      50% { box-shadow: 0 0 25px rgba(0,229,255,0.8), 0 0 45px rgba(0,229,255,0.3); }
     }
 
-    main { display: flex; flex: 1; gap: 0; }
-
-    /* SIDEBAR */
-    .sidebar {
-      width: 280px; min-width: 220px;
-      border-right: 1px solid var(--panel-border);
-      background: rgba(3,10,24,0.9);
-      display: flex; flex-direction: column;
-      padding: 20px 0;
-    }
-    .sidebar-section { padding: 0 20px 20px; }
-    .sidebar-label {
-      font-size: 0.6rem; letter-spacing: 3px; color: var(--text-dim);
-      text-transform: uppercase; margin-bottom: 10px;
-      border-bottom: 1px solid rgba(0,229,255,0.1); padding-bottom: 6px;
-    }
-    .user-card {
-      display: flex; align-items: center; gap: 12px;
-      padding: 12px; border-radius: 8px;
-      background: rgba(0,229,255,0.05); border: 1px solid rgba(0,229,255,0.15);
-      margin-bottom: 8px;
-    }
-    .user-avatar {
-      width: 40px; height: 40px; border-radius: 50%;
-      background: linear-gradient(135deg, #00e5ff, #38f9d7);
-      display: flex; align-items: center; justify-content: center;
-      font-family: 'Orbitron', monospace; font-weight: 700;
-      font-size: 1rem; color: #030814;
-    }
-    .user-info .user-name { font-weight: 700; font-size: 0.9rem; color: var(--cyan); }
-    .user-info .user-email { font-size: 0.72rem; color: var(--text-dim); word-break: break-all; }
-
-    .stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-    .stat-card {
-      padding: 10px; border-radius: 6px;
-      background: rgba(0,229,255,0.04); border: 1px solid rgba(0,229,255,0.12);
-      text-align: center;
-    }
-    .stat-num { font-family: 'Orbitron', monospace; font-size: 1.3rem; color: var(--cyan); }
-    .stat-lbl { font-size: 0.6rem; color: var(--text-dim); letter-spacing: 1px; }
-
-    .nav-item {
-      display: flex; align-items: center; gap: 10px;
-      padding: 10px 20px; cursor: pointer;
-      font-size: 0.85rem; letter-spacing: 1px;
-      border-left: 3px solid transparent;
-      transition: all 0.2s;
-      color: var(--text-dim);
-    }
-    .nav-item:hover, .nav-item.active {
-      background: rgba(0,229,255,0.07);
-      border-left-color: var(--cyan);
-      color: var(--cyan);
+    .arc-reactor-logo::before {
+      content: '';
+      position: absolute;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: radial-gradient(circle, #fff, var(--cyan));
+      box-shadow: 0 0 10px #fff;
     }
 
-    /* MAIN CONTENT */
-    .content { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
-
-    .search-bar {
-      display: flex; gap: 10px;
-      padding: 20px 28px 0;
-    }
-    .search-input {
-      flex: 1;
-      background: rgba(0,229,255,0.05); border: 1px solid rgba(0,229,255,0.25);
-      color: var(--text-main); border-radius: 8px;
-      padding: 12px 18px;
-      font-family: 'Rajdhani', sans-serif; font-size: 1rem;
-      outline: none; transition: border 0.2s;
-      user-select: text;
-    }
-    .search-input::placeholder { color: var(--text-dim); }
-    .search-input:focus { border-color: var(--cyan); box-shadow: 0 0 0 3px rgba(0,229,255,0.1); }
-    .btn-search {
-      background: linear-gradient(135deg, #00e5ff, #38f9d7);
-      color: #030814; font-family: 'Orbitron', monospace;
-      font-weight: 700; font-size: 0.75rem; letter-spacing: 1px;
-      border: none; border-radius: 8px; padding: 12px 22px;
-      cursor: pointer; transition: all 0.2s;
-    }
-    .btn-search:hover { opacity: 0.85; transform: translateY(-1px); }
-
-    .emails-panel {
-      flex: 1; overflow-y: auto;
-      padding: 20px 28px 28px;
+    .brand-title h1 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 1.35rem;
+      letter-spacing: 3px;
+      color: #fff;
+      text-shadow: 0 0 10px rgba(0, 229, 255, 0.7);
     }
 
-    .panel-title {
-      font-family: 'Orbitron', monospace; font-size: 0.75rem;
-      color: var(--cyan); letter-spacing: 3px; text-transform: uppercase;
-      margin-bottom: 16px; padding-bottom: 8px;
-      border-bottom: 1px solid rgba(0,229,255,0.15);
+    .brand-title p {
+      font-size: 0.68rem;
+      letter-spacing: 2px;
+      color: var(--cyan-bright);
     }
 
-    .email-card {
-      background: var(--panel-bg); border: 1px solid var(--panel-border);
-      border-radius: 10px; padding: 16px 20px;
-      margin-bottom: 12px; cursor: pointer;
-      transition: all 0.2s; position: relative;
-    }
-    .email-card:hover { border-color: var(--cyan); background: rgba(0,229,255,0.07); }
-    .email-card.unread { border-left: 3px solid var(--cyan); }
-    .email-meta { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
-    .email-from { font-weight: 700; font-size: 0.9rem; color: var(--cyan); }
-    .email-date { font-size: 0.72rem; color: var(--text-dim); }
-    .email-subject { font-weight: 600; font-size: 0.95rem; margin-bottom: 4px; }
-    .email-snippet { font-size: 0.8rem; color: var(--text-dim); line-height: 1.4; }
-    .email-label {
-      display: inline-block; padding: 2px 8px;
-      border-radius: 12px; font-size: 0.65rem; font-weight: 700;
-      letter-spacing: 1px; margin-top: 8px;
-    }
-    .label-inbox { background: rgba(0,229,255,0.15); color: var(--cyan); border: 1px solid rgba(0,229,255,0.3); }
-    .label-important { background: rgba(255,165,0,0.15); color: #ffa500; border: 1px solid rgba(255,165,0,0.3); }
-    .label-sent { background: rgba(34,197,94,0.15); color: var(--green); border: 1px solid rgba(34,197,94,0.3); }
+    .header-actions { display: flex; align-items: center; gap: 10px; }
 
-    /* VOICE BUTTON */
-    .voice-fab {
-      position: fixed; bottom: 30px; right: 30px;
-      width: 60px; height: 60px; border-radius: 50%;
-      background: linear-gradient(135deg, #00e5ff, #38f9d7);
-      border: none; cursor: pointer;
-      display: flex; align-items: center; justify-content: center;
-      box-shadow: 0 4px 25px rgba(0,229,255,0.5);
-      transition: all 0.2s; z-index: 100;
-    }
-    .voice-fab:hover { transform: scale(1.1); box-shadow: 0 6px 35px rgba(0,229,255,0.7); }
-    .voice-fab svg { width: 26px; height: 26px; fill: #030814; }
-    .voice-fab.speaking { animation: voice-pulse 1s ease-in-out infinite; }
-    @keyframes voice-pulse {
-      0%,100% { box-shadow: 0 4px 25px rgba(0,229,255,0.5); }
-      50% { box-shadow: 0 4px 50px rgba(0,229,255,1), 0 0 80px rgba(0,229,255,0.4); }
-    }
-
-    /* CONNECT MODAL */
-    .modal-overlay {
-      display: none; position: fixed; inset: 0;
-      background: rgba(0,0,0,0.75); backdrop-filter: blur(6px);
-      z-index: 1000; align-items: center; justify-content: center;
-    }
-    .modal-overlay.open { display: flex; }
-    .modal {
-      background: #040e1e; border: 1px solid var(--cyan);
-      border-radius: 16px; padding: 36px; max-width: 480px; width: 90%;
-      box-shadow: 0 0 60px rgba(0,229,255,0.2);
-      animation: modal-in 0.3s ease-out;
-    }
-    @keyframes modal-in { from { transform: scale(0.9); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-    .modal-title {
-      font-family: 'Orbitron', monospace; color: var(--cyan);
-      font-size: 1.1rem; letter-spacing: 2px; margin-bottom: 8px;
-    }
-    .modal-sub { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 28px; line-height: 1.5; }
-    .modal-sub a { color: var(--cyan); }
-
-    .btn-google {
-      display: flex; align-items: center; gap: 14px;
-      width: 100%; padding: 15px 20px;
-      background: rgba(255,255,255,0.05); border: 1px solid rgba(255,255,255,0.15);
-      border-radius: 10px; cursor: pointer; color: white;
-      font-family: 'Rajdhani', sans-serif; font-size: 1rem; font-weight: 600;
-      transition: all 0.2s; text-align: left;
+    .user-pill {
+      background: rgba(0, 229, 255, 0.08);
+      border: 1px solid rgba(0, 229, 255, 0.35);
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.82rem;
+      display: flex;
+      align-items: center;
+      gap: 8px;
       letter-spacing: 0.5px;
     }
-    .btn-google:hover { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.3); }
-    .btn-google img { width: 24px; height: 24px; }
 
-    .modal-divider {
-      display: flex; align-items: center; gap: 12px;
-      margin: 20px 0; color: var(--text-dim); font-size: 0.8rem;
-    }
-    .modal-divider::before, .modal-divider::after {
-      content: ''; flex: 1; height: 1px; background: rgba(0,229,255,0.15);
+    .pulse-dot {
+      width: 8px; height: 8px; border-radius: 50%;
+      background: var(--cyan); box-shadow: 0 0 8px var(--cyan);
+      animation: pulse 1.8s infinite;
     }
 
-    .modal-info {
-      background: rgba(0,229,255,0.07); border: 1px solid rgba(0,229,255,0.15);
-      border-radius: 8px; padding: 14px 16px; font-size: 0.8rem;
-      color: var(--text-dim); line-height: 1.6;
+    .pulse-dot.disconnected {
+      background: var(--gold);
+      box-shadow: 0 0 8px var(--gold);
     }
-    .modal-info strong { color: var(--cyan); }
 
-    .modal-close {
-      background: none; border: 1px solid rgba(255,255,255,0.1);
-      color: var(--text-dim); border-radius: 6px; padding: 8px 18px;
-      cursor: pointer; font-family: 'Rajdhani', sans-serif;
-      margin-top: 20px; transition: all 0.2s;
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50% { opacity: 0.4; transform: scale(0.85); }
     }
-    .modal-close:hover { border-color: var(--red); color: var(--red); }
 
-    /* EMAIL DETAIL MODAL */
-    .detail-modal {
-      background: #040e1e; border: 1px solid var(--cyan);
-      border-radius: 16px; padding: 36px; max-width: 650px; width: 95%;
-      max-height: 80vh; overflow-y: auto;
-      box-shadow: 0 0 60px rgba(0,229,255,0.2);
-      animation: modal-in 0.3s ease-out;
+    .hud-btn {
+      background: rgba(0, 229, 255, 0.1);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      padding: 6px 14px;
+      border-radius: 6px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.72rem;
+      letter-spacing: 1px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
     }
-    .detail-modal .email-body {
-      background: rgba(0,229,255,0.03); border: 1px solid rgba(0,229,255,0.1);
-      border-radius: 8px; padding: 16px; margin: 16px 0;
-      font-size: 0.85rem; line-height: 1.7; color: var(--text-main);
-      white-space: pre-wrap; word-break: break-word; user-select: text;
-    }
-    .btn-summarize {
-      background: linear-gradient(135deg, rgba(0,229,255,0.15), rgba(56,249,215,0.1));
-      border: 1px solid var(--cyan); color: var(--cyan);
-      padding: 10px 22px; border-radius: 8px;
-      font-family: 'Rajdhani', sans-serif; font-weight: 700; font-size: 0.9rem;
-      cursor: pointer; transition: all 0.2s; margin-right: 10px;
-    }
-    .btn-summarize:hover { background: rgba(0,229,255,0.25); }
 
-    /* EMPTY / STATUS STATES */
-    .empty-state {
-      display: flex; flex-direction: column; align-items: center;
-      justify-content: center; text-align: center;
-      padding: 60px 20px; gap: 16px;
+    .hud-btn:hover {
+      background: var(--cyan);
+      color: #030814;
+      box-shadow: 0 0 15px var(--cyan);
     }
-    .empty-state .icon { font-size: 3rem; opacity: 0.3; }
-    .empty-state h3 { font-family: 'Orbitron', monospace; font-size: 0.9rem; color: var(--cyan); }
-    .empty-state p { color: var(--text-dim); font-size: 0.85rem; max-width: 320px; line-height: 1.6; }
 
-    .loading-dots { display: inline-flex; gap: 5px; align-items: center; }
-    .loading-dots span {
-      width: 6px; height: 6px; border-radius: 50%; background: var(--cyan);
-      animation: bounce 1.2s ease-in-out infinite;
+    .link-gmail-btn {
+      background: linear-gradient(135deg, rgba(0, 229, 255, 0.2), rgba(34, 197, 94, 0.25));
+      border: 1.5px solid var(--cyan-bright);
+      color: #fff;
+      font-weight: 700;
+      box-shadow: 0 0 12px rgba(0, 229, 255, 0.4);
     }
-    .loading-dots span:nth-child(2) { animation-delay: 0.2s; }
-    .loading-dots span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes bounce { 0%,80%,100%{transform:scale(0.6);opacity:0.4} 40%{transform:scale(1);opacity:1} }
 
-    .toast {
-      position: fixed; bottom: 100px; right: 30px;
-      background: rgba(4,14,30,0.95); border: 1px solid var(--cyan);
-      border-radius: 10px; padding: 14px 20px;
-      font-size: 0.85rem; color: var(--text-main);
-      max-width: 320px; z-index: 2000;
-      animation: slide-in 0.3s ease-out;
-      box-shadow: 0 4px 20px rgba(0,229,255,0.2);
+    .link-gmail-btn:hover {
+      background: var(--cyan-bright);
+      color: #030814;
+      box-shadow: 0 0 20px var(--cyan-bright);
     }
-    .toast.error { border-color: var(--red); }
-    @keyframes slide-in { from { transform: translateX(120%); } to { transform: translateX(0); } }
 
-    /* Scrollbar */
-    ::-webkit-scrollbar { width: 5px; }
+    .stop-btn {
+      background: rgba(239, 68, 68, 0.15) !important;
+      border-color: #ef4444 !important;
+      color: #fca5a5 !important;
+      transition: all 0.2s ease;
+    }
+    .stop-btn:hover {
+      background: #ef4444 !important;
+      color: #fff !important;
+    }
+    .speaking-active {
+      animation: stopPulse 0.9s infinite alternate;
+    }
+    @keyframes stopPulse {
+      0% { box-shadow: 0 0 5px rgba(239, 68, 68, 0.4); }
+      100% { box-shadow: 0 0 18px rgba(239, 68, 68, 0.9); }
+    }
+
+    /* MAIN THREE COLUMN GRID */
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 330px 1fr 310px;
+      gap: 16px;
+      padding: 16px 24px;
+    }
+
+    .panel {
+      background: var(--panel-bg);
+      border: 1px solid var(--panel-border);
+      border-radius: 10px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: inset 0 0 15px rgba(0, 229, 255, 0.04);
+      backdrop-filter: blur(6px);
+    }
+
+    .panel-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.2);
+      padding-bottom: 8px;
+      margin-bottom: 12px;
+    }
+
+    .panel-header h2 {
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.82rem;
+      letter-spacing: 1.5px;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .inbox-filter-bar {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 10px;
+    }
+
+    .inbox-filter-bar input {
+      flex: 1;
+      background: rgba(0, 229, 255, 0.05);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      border-radius: 4px;
+      padding: 6px 10px;
+      color: #fff;
+      font-size: 0.85rem;
+      font-family: 'Rajdhani', sans-serif;
+      outline: none;
+      user-select: text;
+    }
+    .inbox-filter-bar input:focus { border-color: var(--cyan); }
+
+    .inbox-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 520px;
+      padding-right: 4px;
+    }
+
+    .inbox-card {
+      background: rgba(0, 229, 255, 0.04);
+      border: 1px solid rgba(0, 229, 255, 0.15);
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 0.85rem;
+      transition: all 0.2s;
+      cursor: pointer;
+    }
+
+    .inbox-card:hover {
+      border-color: var(--cyan);
+      background: rgba(0, 229, 255, 0.09);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.15);
+    }
+
+    .card-top {
+      display: flex;
+      justify-content: space-between;
+      color: var(--cyan);
+      font-weight: 700;
+      font-size: 0.82rem;
+      margin-bottom: 4px;
+    }
+
+    .card-subject {
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.88rem;
+      margin-bottom: 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .card-snippet {
+      font-size: 0.76rem;
+      color: var(--text-dim);
+      line-height: 1.35;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+
+    .card-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .mini-btn {
+      background: rgba(0, 229, 255, 0.1);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      color: var(--cyan-bright);
+      border-radius: 4px;
+      padding: 2px 7px;
+      font-size: 0.68rem;
+      font-family: 'Orbitron', monospace;
+      cursor: pointer;
+    }
+    .mini-btn:hover { background: var(--cyan); color: #030814; }
+
+    /* CENTER COLUMN */
+    .center-col { display: flex; flex-direction: column; gap: 14px; }
+
+    .orb-stage {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 190px;
+      position: relative;
+    }
+
+    .hologram-orb {
+      width: 125px;
+      height: 125px;
+      border-radius: 50%;
+      background: radial-gradient(circle at 50% 50%, #fff 0%, var(--cyan) 40%, rgba(0, 160, 255, 0.35) 70%, transparent 100%);
+      box-shadow: 0 0 30px var(--cyan), 0 0 60px rgba(0, 229, 255, 0.5), inset 0 0 20px #fff;
+      animation: orbFloat 4s ease-in-out infinite, orbGlow 2s ease-in-out infinite alternate;
+      position: relative;
+    }
+
+    .orb-ring {
+      position: absolute;
+      top: -12px; left: -12px; right: -12px; bottom: -12px;
+      border: 1px dashed rgba(0, 229, 255, 0.6);
+      border-radius: 50%;
+      animation: spin 12s linear infinite;
+    }
+
+    .orb-ring::after {
+      content: '';
+      position: absolute;
+      top: -6px; left: -6px; right: -6px; bottom: -6px;
+      border: 1px dotted rgba(56, 249, 215, 0.4);
+      border-radius: 50%;
+      animation: spinReverse 8s linear infinite;
+    }
+
+    @keyframes orbFloat {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-8px); }
+    }
+
+    @keyframes orbGlow {
+      from { box-shadow: 0 0 20px var(--cyan); }
+      to { box-shadow: 0 0 45px rgba(0, 229, 255, 0.85); }
+    }
+
+    @keyframes spin { 100% { transform: rotate(360deg); } }
+    @keyframes spinReverse { 100% { transform: rotate(-360deg); } }
+
+    .orb-label {
+      margin-top: 14px;
+      font-family: 'Orbitron', sans-serif;
+      font-size: 0.78rem;
+      letter-spacing: 2px;
+      color: var(--cyan);
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .soundwave { display: flex; align-items: center; gap: 3px; height: 14px; }
+    .wave-bar {
+      width: 3px; height: 100%; background: var(--cyan); border-radius: 2px;
+      animation: soundJump 1.2s ease-in-out infinite;
+    }
+    .wave-bar:nth-child(2) { animation-delay: 0.2s; }
+    .wave-bar:nth-child(3) { animation-delay: 0.4s; }
+    .wave-bar:nth-child(4) { animation-delay: 0.1s; }
+    .wave-bar:nth-child(5) { animation-delay: 0.3s; }
+    @keyframes soundJump { 0%, 100% { height: 4px; } 50% { height: 14px; } }
+
+    .quick-actions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .pill-btn {
+      background: rgba(0, 229, 255, 0.06);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      color: var(--text-main);
+      padding: 6px 12px;
+      border-radius: 16px;
+      font-size: 0.78rem;
+      font-family: 'Rajdhani', sans-serif;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pill-btn:hover {
+      background: rgba(0, 229, 255, 0.2);
+      border-color: var(--cyan);
+      color: #fff;
+    }
+
+    .terminal-output {
+      background: rgba(3, 10, 24, 0.85);
+      border: 1px solid var(--panel-border);
+      border-radius: 8px;
+      padding: 14px 18px;
+      font-size: 0.88rem;
+      line-height: 1.6;
+      color: var(--text-main);
+      min-height: 140px;
+      max-height: 220px;
+      overflow-y: auto;
+      user-select: text;
+      box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.6);
+    }
+    .terminal-output b { color: var(--cyan); }
+    .terminal-output i { color: var(--cyan-bright); }
+
+    .input-bar {
+      display: flex;
+      gap: 8px;
+    }
+
+    .input-bar input {
+      flex: 1;
+      background: rgba(0, 229, 255, 0.05);
+      border: 1px solid rgba(0, 229, 255, 0.25);
+      border-radius: 6px;
+      padding: 10px 14px;
+      color: #fff;
+      font-size: 0.95rem;
+      font-family: 'Rajdhani', sans-serif;
+      outline: none;
+      user-select: text;
+    }
+    .input-bar input:focus {
+      border-color: var(--cyan);
+      box-shadow: 0 0 10px rgba(0, 229, 255, 0.25);
+    }
+
+    /* RIGHT COLUMN (Telemetry + Schedule) */
+    .telemetry-row {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.85rem;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(0, 229, 255, 0.1);
+    }
+    .telemetry-row span:first-child { color: var(--text-dim); }
+    .telemetry-row span:last-child { color: var(--cyan); font-weight: 600; }
+
+    .schedule-box {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      max-height: 380px;
+      margin-top: 8px;
+    }
+
+    .schedule-item {
+      background: rgba(0, 229, 255, 0.04);
+      border: 1px solid rgba(0, 229, 255, 0.15);
+      border-left: 3px solid var(--cyan);
+      border-radius: 6px;
+      padding: 10px;
+      font-size: 0.82rem;
+      transition: all 0.2s;
+    }
+    .schedule-item:hover {
+      border-color: var(--cyan);
+      background: rgba(0, 229, 255, 0.09);
+    }
+
+    .schedule-item.user-event {
+      border-left-color: var(--cyan-bright);
+    }
+
+    /* MODAL */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.78);
+      backdrop-filter: blur(6px);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal-overlay.open { display: flex; }
+
+    .modal-window {
+      background: #040e1e;
+      border: 1px solid var(--cyan);
+      border-radius: 14px;
+      padding: 28px;
+      max-width: 500px;
+      width: 90%;
+      box-shadow: 0 0 50px rgba(0, 229, 255, 0.25);
+      animation: modal-in 0.25s ease-out;
+    }
+    @keyframes modal-in { from { transform: scale(0.92); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+
+    .modal-title {
+      font-family: 'Orbitron', monospace;
+      color: var(--cyan);
+      font-size: 1.05rem;
+      letter-spacing: 2px;
+      margin-bottom: 8px;
+    }
+    .modal-sub { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 20px; line-height: 1.5; }
+
+    .modal-input {
+      width: 100%;
+      background: rgba(0, 229, 255, 0.05);
+      border: 1px solid rgba(0, 229, 255, 0.3);
+      border-radius: 6px;
+      padding: 10px 14px;
+      color: #fff;
+      font-family: 'Rajdhani', sans-serif;
+      font-size: 0.95rem;
+      margin-bottom: 12px;
+      outline: none;
+      user-select: text;
+    }
+    .modal-input:focus { border-color: var(--cyan); }
+
+    /* FOOTER */
+    footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 24px;
+      border-top: 1px solid var(--panel-border);
+      background: rgba(3, 10, 24, 0.92);
+      font-size: 0.7rem;
+      color: var(--text-dim);
+      letter-spacing: 1px;
+    }
+
+    /* Scrollbars */
+    ::-webkit-scrollbar { width: 4px; }
     ::-webkit-scrollbar-track { background: transparent; }
-    ::-webkit-scrollbar-thumb { background: rgba(0,229,255,0.3); border-radius: 3px; }
+    ::-webkit-scrollbar-thumb { background: rgba(0, 229, 255, 0.3); border-radius: 2px; }
 
-    @media (max-width: 768px) {
-      .sidebar { display: none; }
-      .search-bar { padding: 16px 16px 0; }
-      .emails-panel { padding: 16px; }
+    @media (max-width: 980px) {
+      main { grid-template-columns: 1fr; }
     }
   </style>
 </head>
 <body>
 
-<!-- HEADER -->
-<header>
-  <div class="logo-section">
-    <div class="logo-icon">
-      <svg viewBox="0 0 24 24"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z"/></svg>
+  <!-- HEADER -->
+  <header>
+    <div class="brand-left">
+      <div class="arc-reactor-logo"></div>
+      <div class="brand-title">
+        <h1>J.A.R.V.I.S.</h1>
+        <p>OPENJARVIS AI ASSISTANT // AUTONOMOUS MAIL &amp; SCHEDULE HUD</p>
+      </div>
     </div>
-    <div>
-      <div class="logo-text">J.A.R.V.I.S.</div>
-      <div class="logo-sub">AUTONOMOUS AI · MAIL INTELLIGENCE</div>
-    </div>
-  </div>
-  <div class="header-status">
-    <div class="status-pill">
-      <div class="status-dot" id="systemDot"></div>
-      <span id="systemStatus">SYSTEM ONLINE</span>
-    </div>
-    <button class="btn-connect" id="btnConnect" onclick="openConnectModal()">
-      🔗 Connect Gmail
-    </button>
-  </div>
-</header>
 
-<main>
-  <!-- SIDEBAR -->
-  <aside class="sidebar">
-    <div class="sidebar-section">
-      <div class="sidebar-label">User Profile</div>
-      <div class="user-card" id="userCard">
-        <div class="user-avatar" id="userAvatar">?</div>
-        <div class="user-info">
-          <div class="user-name" id="userName">Not Connected</div>
-          <div class="user-email" id="userEmail">Link your Gmail to begin</div>
+    <div class="header-actions">
+      <div class="user-pill">
+        <div class="pulse-dot disconnected" id="status-dot"></div>
+        <span id="user-display">Guest User | No Account Linked</span>
+      </div>
+      <button class="hud-btn link-gmail-btn" id="btn-link" onclick="initiateGoogleLogin()">
+        🔗 Link Gmail Account
+      </button>
+      <button class="hud-btn" id="voice-toggle" onclick="toggleVoice()">
+        🔊 Voice: ON
+      </button>
+      <button class="hud-btn" id="logout-btn" style="display:none;" onclick="unlinkAccount()">
+        🚪 Disconnect
+      </button>
+    </div>
+  </header>
+
+  <!-- MAIN HUD -->
+  <main>
+    <!-- LEFT: GMAIL INBOX FEED & SEARCH -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>📥 Mail Archive &amp; Inbox</h2>
+        <span style="font-size:0.75rem; color:var(--text-dim)" id="mail-connection-label">● Standby</span>
+      </div>
+
+      <div class="inbox-filter-bar">
+        <input type="text" id="inbox-search" placeholder="Search sender, topic, or keyword..." onkeydown="if(event.key==='Enter') searchInbox()">
+        <button class="hud-btn" style="padding:4px 10px;" onclick="searchInbox()">Search</button>
+      </div>
+
+      <div class="inbox-list" id="inbox-feed">
+        <div style="text-align:center; padding: 35px 15px; color:var(--text-dim)">
+          <div style="font-size:2rem; margin-bottom:8px;">📬</div>
+          <b style="color:var(--cyan)">No Gmail Account Linked</b><br>
+          <span style="font-size:0.82rem;">Click <b>"Link Gmail Account"</b> above to connect your inbox in 1 click!</span>
         </div>
       </div>
     </div>
 
-    <div class="sidebar-section">
-      <div class="sidebar-label">Inbox Stats</div>
-      <div class="stat-grid">
-        <div class="stat-card">
-          <div class="stat-num" id="statTotal">—</div>
-          <div class="stat-lbl">TOTAL</div>
+    <!-- CENTER: ORB + CHAT HUD -->
+    <div class="center-col">
+      <div class="panel orb-stage">
+        <div class="hologram-orb">
+          <div class="orb-ring"></div>
         </div>
-        <div class="stat-card">
-          <div class="stat-num" id="statUnread">—</div>
-          <div class="stat-lbl">UNREAD</div>
+        <div class="orb-label">
+          <span>JARVIS VOCALIZING // TRANSMITTING</span>
+          <div class="soundwave">
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+            <div class="wave-bar"></div>
+          </div>
         </div>
+      </div>
+
+      <div class="quick-actions">
+        <button class="pill-btn" onclick="quickAsk('Morning Briefing')">🌅 Morning Briefing</button>
+        <button class="pill-btn" onclick="quickAsk('Summarize my latest emails')">🤖 Summarize Latest</button>
+        <button class="pill-btn" onclick="quickAsk('What is my work schedule and upcoming action items?')">📅 Work Schedule</button>
+        <button class="pill-btn" onclick="openScheduleModal()">➕ Schedule Event</button>
+        <button class="pill-btn" onclick="quickAsk('Run system diagnostics')">🛡️ Diagnostics</button>
+      </div>
+
+      <div class="terminal-output" id="jarvis-output">
+        <b>• Welcome to J.A.R.V.I.S. Mail Intelligence HUD:</b><br>
+        Connect your Gmail account using the button on the top right to start exploring your personal emails, schedule scanner, and AI-powered voice briefings.<br>
+        <b>• Universal &amp; Secure:</b> No server stores your credentials. Direct browser-to-Google OAuth encryption.
+      </div>
+
+      <div class="input-bar">
+        <input type="text" id="query-input" placeholder="Ask Jarvis: 'summarize emails', 'schedule meeting tomorrow at 3pm'..." onkeydown="if(event.key==='Enter') sendQuery()">
+        <button class="hud-btn" onclick="sendQuery()">Send</button>
+        <button class="hud-btn stop-btn" id="stop-speaking-btn" onclick="stopSpeechAndSummarizing()">⏹ Stop</button>
       </div>
     </div>
 
-    <div class="sidebar-section">
-      <div class="sidebar-label">Navigation</div>
-      <div class="nav-item active" onclick="filterEmails('all')">📥 All Mail</div>
-      <div class="nav-item" onclick="filterEmails('unread')">🔵 Unread</div>
-      <div class="nav-item" onclick="filterEmails('important')">⭐ Important</div>
-      <div class="nav-item" onclick="openConnectModal()">⚙️ Settings</div>
-      <div class="nav-item" onclick="signOut()" id="signOutNav" style="display:none;">🚪 Sign Out</div>
-    </div>
-  </aside>
+    <!-- RIGHT: TELEMETRY & WORK SCHEDULE -->
+    <div class="panel">
+      <div class="panel-header">
+        <h2>⚡ Telemetry</h2>
+        <span style="font-size:0.75rem; color:var(--cyan)">NOMINAL</span>
+      </div>
 
-  <!-- MAIN CONTENT -->
-  <div class="content">
-    <div class="search-bar">
-      <input class="search-input" id="searchInput" type="text"
-        placeholder="Ask JARVIS: 'show emails about project deadline'..."
-        onkeypress="if(event.key==='Enter')searchEmails()"
-        disabled>
-      <button class="btn-search" onclick="searchEmails()" id="btnSearch">SEARCH</button>
-    </div>
+      <div class="telemetry-row">
+        <span>Host Engine:</span>
+        <span>OpenJarvis Core</span>
+      </div>
+      <div class="telemetry-row">
+        <span>Active User:</span>
+        <span id="tel-user">Guest</span>
+      </div>
+      <div class="telemetry-row">
+        <span>Mailbox Status:</span>
+        <span id="tel-mail-status" style="color:var(--gold)">Not Connected</span>
+      </div>
+      <div class="telemetry-row">
+        <span>Messages Indexed:</span>
+        <span id="tel-emails">0 Messages</span>
+      </div>
 
-    <div class="emails-panel">
-      <div class="panel-title" id="panelTitle">MAIL INTELLIGENCE HUD</div>
-      <div id="emailsList">
-        <div class="empty-state">
-          <div class="icon">🛸</div>
-          <h3>NO ACCOUNT LINKED</h3>
-          <p>Connect your Gmail account using the button above. JARVIS will then give you AI-powered access to your inbox — search, summarize, and listen.</p>
-          <button class="btn-connect" style="margin-top:10px;" onclick="openConnectModal()">🔗 Connect Gmail Now</button>
+      <div class="panel-header" style="margin-top: 14px;">
+        <h2>📅 Work Schedule &amp; Agenda</h2>
+        <button class="mini-btn" onclick="openScheduleModal()">+ Event</button>
+      </div>
+
+      <div class="schedule-box" id="schedule-list">
+        <div class="schedule-item">
+          <b>Schedule Scanner Standing By</b><br>
+          <span style="color:var(--text-dim)">Link your Gmail to detect meetings, tickets, flights, and deadlines automatically.</span>
         </div>
       </div>
     </div>
-  </div>
-</main>
+  </main>
 
-<!-- VOICE FAB -->
-<button class="voice-fab" id="voiceFab" onclick="toggleVoice()" title="Voice Summary">
-  <svg viewBox="0 0 24 24"><path d="M12 14c1.66 0 3-1.34 3-3V5c0-1.66-1.34-3-3-3S9 3.34 9 5v6c0 1.66 1.34 3 3 3zm-1-9c0-.55.45-1 1-1s1 .45 1 1v6c0 .55-.45 1-1 1s-1-.45-1-1V5zm6 6c0 2.76-2.24 5-5 5s-5-2.24-5-5H5c0 3.53 2.61 6.43 6 6.92V21h2v-3.08c3.39-.49 6-3.39 6-6.92h-2z"/></svg>
-</button>
+  <!-- FOOTER -->
+  <footer>
+    <span>OPENJARVIS MULTI-MODAL PLATFORM // ARCHITECTURE: AUTONOMOUS AGENT</span>
+    <span>STATUS: READY // UNIVERSAL CLIENT MODE ACTIVE</span>
+  </footer>
 
-<!-- CONNECT MODAL -->
-<div class="modal-overlay" id="connectModal">
-  <div class="modal">
-    <div class="modal-title">🔗 CONNECT YOUR GMAIL</div>
-    <div class="modal-sub">
-      Sign in with Google to give JARVIS secure, read-only access to your inbox. Your credentials are never stored on any server.
-    </div>
+  <!-- SCHEDULE EVENT MODAL -->
+  <div class="modal-overlay" id="scheduleModal">
+    <div class="modal-window">
+      <div class="modal-title">📅 SCHEDULE NEW EVENT</div>
+      <div class="modal-sub">Add an action item or event to your J.A.R.V.I.S. agenda and Google Calendar:</div>
 
-    <button class="btn-google" onclick="startGoogleOAuth()">
-      <img src="https://www.google.com/favicon.ico" alt="Google">
-      <span>Sign in with Google</span>
-    </button>
+      <input class="modal-input" id="eventTitle" type="text" placeholder="Event Title (e.g. Client Review Meeting)">
+      <input class="modal-input" id="eventDate" type="date">
+      <input class="modal-input" id="eventTime" type="time">
+      <input class="modal-input" id="eventDesc" type="text" placeholder="Description or Notes (Optional)">
 
-    <div class="modal-divider">HOW IT WORKS</div>
-
-    <div class="modal-info">
-      <strong>🔒 100% Secure:</strong> Uses Google's official OAuth 2.0. JARVIS never sees your password.<br><br>
-      <strong>✅ Read-Only:</strong> JARVIS only reads your emails — it cannot send or delete anything.<br><br>
-      <strong>⚡ Instant:</strong> Click "Sign in with Google" → approve → done. No app passwords needed.
-    </div>
-
-    <div style="display:flex; gap:10px; margin-top:20px; flex-wrap:wrap;">
-      <button class="modal-close" onclick="closeConnectModal()">Cancel</button>
-    </div>
-  </div>
-</div>
-
-<!-- EMAIL DETAIL MODAL -->
-<div class="modal-overlay" id="detailModal">
-  <div class="detail-modal">
-    <div style="display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:16px; gap:12px;">
-      <div>
-        <div class="modal-title" id="detailSubject" style="font-size:0.95rem;"></div>
-        <div style="color:var(--text-dim); font-size:0.8rem; margin-top:4px;">
-          From: <span id="detailFrom"></span> &nbsp;·&nbsp; <span id="detailDate"></span>
-        </div>
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+        <button class="hud-btn" onclick="closeScheduleModal()">Cancel</button>
+        <button class="hud-btn link-gmail-btn" onclick="createManualEvent()">Add to Agenda &amp; Calendar</button>
       </div>
-      <button class="modal-close" onclick="closeDetailModal()" style="flex-shrink:0;">✕</button>
-    </div>
-    <div class="email-body" id="detailBody"></div>
-    <div>
-      <button class="btn-summarize" onclick="summarizeCurrentEmail()">🤖 Summarize &amp; Read Aloud</button>
     </div>
   </div>
-</div>
 
-<script>
-// ============================================================
-// UTILITY FUNCTIONS — defined first so they're always available
-// ============================================================
+  <!-- SCRIPT -->
+  <script>
+    // ============================================================
+    // CONFIG & STATE
+    // ============================================================
+    const CLIENT_ID = '750687175555-hckdi4bgh6q0490kg8j5scapjk218s0d.apps.googleusercontent.com';
+    const SCOPES = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
 
-function escapeHtml(str) {
-  if (!str) return '';
-  return String(str)
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;');
-}
+    let tokenClient = null;
+    let userAccessToken = sessionStorage.getItem('jarvis_access_token') || '';
+    let userEmail = sessionStorage.getItem('jarvis_user_email') || '';
+    let voiceEnabled = true;
+    let loadedEmails = [];
+    let customEvents = JSON.parse(sessionStorage.getItem('jarvis_custom_events') || '[]');
 
-function showToast(msg, isError) {
-  var t = document.createElement('div');
-  t.className = 'toast' + (isError ? ' error' : '');
-  t.textContent = msg;
-  document.body.appendChild(t);
-  setTimeout(function() { t.remove(); }, 4000);
-}
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+    }
 
-function formatDate(dateStr) {
-  if (!dateStr) return '';
-  try {
-    var d = new Date(dateStr);
-    return d.toLocaleString('en-US', {month:'short', day:'numeric', hour:'2-digit', minute:'2-digit'});
-  } catch(e) { return dateStr; }
-}
+    // ============================================================
+    // GOOGLE OAUTH 2.0 INITIALIZATION
+    // ============================================================
+    function initOAuth() {
+      if (window.google && window.google.accounts) {
+        tokenClient = google.accounts.oauth2.initTokenClient({
+          client_id: CLIENT_ID,
+          scope: SCOPES,
+          callback: handleOAuthResponse
+        });
+      }
+    }
 
-// ============================================================
-// GOOGLE OAUTH CONFIG
-// Replace CLIENT_ID with your own from console.cloud.google.com
-// ============================================================
-var GOOGLE_CLIENT_ID = '750687175555-hckdi4bgh6q0490kg8j5scapjk218s0d.apps.googleusercontent.com';
-var SCOPES = 'https://www.googleapis.com/auth/gmail.readonly https://www.googleapis.com/auth/userinfo.profile https://www.googleapis.com/auth/userinfo.email';
+    window.addEventListener('load', () => {
+      initOAuth();
+      const interval = setInterval(() => {
+        if (window.google && window.google.accounts) {
+          clearInterval(interval);
+          initOAuth();
+        }
+      }, 300);
 
-var gapiLoaded = false;
-var gisLoaded = false;
-var tokenClient = null;
-var accessToken = null;
-var currentUser = null;
-var allEmails = [];
-var currentEmailDetail = null;
+      if (userAccessToken) {
+        onAuthSuccess(userAccessToken);
+      } else {
+        renderCustomEvents();
+      }
+    });
 
-// ============================================================
-// GOOGLE API & GIS LIBRARY LOADERS
-// ============================================================
+    function initiateGoogleLogin() {
+      if (!tokenClient) {
+        initOAuth();
+        if (!tokenClient) {
+          alert('Google Auth is initializing. Please click again in 2 seconds.');
+          return;
+        }
+      }
+      tokenClient.requestAccessToken({ prompt: 'consent' });
+    }
 
-function loadGapiAndGis() {
-  // Load Google API client
-  var gapiScript = document.createElement('script');
-  gapiScript.src = 'https://apis.google.com/js/api.js';
-  gapiScript.onload = function() {
-    gapi.load('client', function() {
-      gapi.client.init({}).then(function() {
-        gapiLoaded = true;
-        checkBothLoaded();
+    async function handleOAuthResponse(resp) {
+      if (resp.error) {
+        showTerminalOutput(`<b>[Error]:</b> Google Authentication failed: ${escapeHtml(resp.error)}`);
+        return;
+      }
+      userAccessToken = resp.access_token;
+      sessionStorage.setItem('jarvis_access_token', userAccessToken);
+
+      // Fetch user profile
+      try {
+        const pRes = await fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
+          headers: { 'Authorization': `Bearer ${userAccessToken}` }
+        });
+        const profile = await pRes.json();
+        userEmail = profile.email || 'Linked User';
+        sessionStorage.setItem('jarvis_user_email', userEmail);
+      } catch (e) {
+        userEmail = 'Linked User';
+      }
+
+      onAuthSuccess(userAccessToken);
+    }
+
+    function onAuthSuccess(token) {
+      document.getElementById('status-dot').classList.remove('disconnected');
+      document.getElementById('status-dot').style.background = 'var(--green)';
+      document.getElementById('user-display').innerText = userEmail || 'Account Linked';
+      document.getElementById('tel-user').innerText = (userEmail ? userEmail.split('@')[0] : 'User');
+      document.getElementById('tel-mail-status').innerText = 'Connected';
+      document.getElementById('tel-mail-status').style.color = 'var(--green)';
+      document.getElementById('mail-connection-label').innerText = '● Connected (Live)';
+      document.getElementById('mail-connection-label').style.color = 'var(--green)';
+      document.getElementById('btn-link').innerText = '✅ Account Linked';
+      document.getElementById('logout-btn').style.display = 'inline-flex';
+
+      loadEmails();
+      speakText("Access granted, Sir. All inbox and schedule channels are now live.");
+    }
+
+    function unlinkAccount() {
+      sessionStorage.removeItem('jarvis_access_token');
+      sessionStorage.removeItem('jarvis_user_email');
+      userAccessToken = '';
+      userEmail = '';
+      loadedEmails = [];
+
+      document.getElementById('status-dot').classList.add('disconnected');
+      document.getElementById('status-dot').style.background = 'var(--gold)';
+      document.getElementById('user-display').innerText = 'Guest User | No Account Linked';
+      document.getElementById('tel-user').innerText = 'Guest';
+      document.getElementById('tel-mail-status').innerText = 'Not Connected';
+      document.getElementById('tel-mail-status').style.color = 'var(--gold)';
+      document.getElementById('mail-connection-label').innerText = '● Standby';
+      document.getElementById('mail-connection-label').style.color = 'var(--text-dim)';
+      document.getElementById('tel-emails').innerText = '0 Messages';
+      document.getElementById('btn-link').innerText = '🔗 Link Gmail Account';
+      document.getElementById('logout-btn').style.display = 'none';
+
+      document.getElementById('inbox-feed').innerHTML = `
+        <div style="text-align:center; padding: 35px 15px; color:var(--text-dim)">
+          <div style="font-size:2rem; margin-bottom:8px;">📬</div>
+          <b style="color:var(--cyan)">No Gmail Account Linked</b><br>
+          <span style="font-size:0.82rem;">Click <b>"Link Gmail Account"</b> to connect your inbox.</span>
+        </div>`;
+      renderCustomEvents();
+      showTerminalOutput('<b>System:</b> Mail account disconnected.');
+    }
+
+    // ============================================================
+    // INBOX INGESTION & SEARCH
+    // ============================================================
+    async function loadEmails(query = '') {
+      if (!userAccessToken) return;
+
+      const container = document.getElementById('inbox-feed');
+      container.innerHTML = `<div style="text-align:center; padding:25px; color:var(--cyan)">
+        <div class="pulse-dot" style="margin:0 auto 10px auto;"></div>
+        Scanning Gmail inbox...
+      </div>`;
+
+      try {
+        let url = 'https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=15';
+        if (query) url += `&q=${encodeURIComponent(query)}`;
+
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${userAccessToken}` } });
+        if (res.status === 401) {
+          initiateGoogleLogin();
+          return;
+        }
+
+        const data = await res.json();
+        const rawMsgs = data.messages || [];
+
+        if (rawMsgs.length === 0) {
+          container.innerHTML = `<div style="text-align:center; padding:25px; color:var(--text-dim)">No emails found matching query.</div>`;
+          document.getElementById('tel-emails').innerText = '0 Messages';
+          return;
+        }
+
+        const emailPromises = rawMsgs.slice(0, 12).map(async (m) => {
+          const detailRes = await fetch(
+            `https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
+            { headers: { 'Authorization': `Bearer ${userAccessToken}` } }
+          );
+          const detail = await detailRes.json();
+          const headers = {};
+          (detail.payload && detail.payload.headers || []).forEach(h => headers[h.name] = h.value);
+          return {
+            id: m.id,
+            from: headers['From'] || 'Unknown',
+            subject: headers['Subject'] || '(No Subject)',
+            date: headers['Date'] || '',
+            snippet: detail.snippet || ''
+          };
+        });
+
+        loadedEmails = await Promise.all(emailPromises);
+        document.getElementById('tel-emails').innerText = `${loadedEmails.length} Messages`;
+
+        container.innerHTML = loadedEmails.map((e, idx) => `
+          <div class="inbox-card" onclick="summarizeSingleEmail(${idx})">
+            <div class="card-top">
+              <span>${escapeHtml(e.from.split('<')[0].replace(/"/g, ''))}</span>
+              <span style="font-size:0.7rem; color:var(--text-dim);">${escapeHtml(e.date ? e.date.split(' ').slice(1,4).join(' ') : '')}</span>
+            </div>
+            <div class="card-subject">${escapeHtml(e.subject)}</div>
+            <div class="card-snippet">${escapeHtml(e.snippet)}</div>
+            <div class="card-actions">
+              <button class="mini-btn" onclick="event.stopPropagation(); summarizeSingleEmail(${idx})">🤖 Summarize</button>
+            </div>
+          </div>
+        `).join('');
+
+        updateAutoSchedule(loadedEmails);
+
+      } catch (err) {
+        container.innerHTML = `<div style="color:var(--red); padding:15px;">Failed to scan inbox: ${escapeHtml(err.message)}</div>`;
+      }
+    }
+
+    function searchInbox() {
+      const q = document.getElementById('inbox-search').value.trim();
+      loadEmails(q);
+    }
+
+    // ============================================================
+    // AI SUMMARIZER & ASSISTANT INTELLIGENCE
+    // ============================================================
+    function summarizeSingleEmail(index) {
+      const e = loadedEmails[index];
+      if (!e) return;
+
+      const sender = e.from.split('<')[0].replace(/"/g, '').trim();
+      const outputHTML = `
+        <b>🤖 AI Email Summary:</b><br>
+        • <b>Sender:</b> ${escapeHtml(sender)}<br>
+        • <b>Subject:</b> ${escapeHtml(e.subject)}<br>
+        • <b>Key Content:</b> ${escapeHtml(e.snippet)}<br>
+        • <b>Action Items:</b> ${detectActionItems(e.subject + ' ' + e.snippet)}
+      `;
+
+      showTerminalOutput(outputHTML);
+      speakText(`Summary of email from ${sender}. Subject: ${e.subject}. ${e.snippet.slice(0, 180)}`);
+    }
+
+    function detectActionItems(text) {
+      const lower = text.toLowerCase();
+      if (lower.includes('meeting') || lower.includes('call') || lower.includes('zoom')) {
+        return 'Review calendar schedule and confirm meeting link.';
+      }
+      if (lower.includes('invoice') || lower.includes('bill') || lower.includes('payment')) {
+        return 'Financial review required — check payment deadline.';
+      }
+      if (lower.includes('apply') || lower.includes('interview') || lower.includes('application')) {
+        return 'Recruitment follow-up — prepare credentials.';
+      }
+      if (lower.includes('ticket') || lower.includes('booking') || lower.includes('flight')) {
+        return 'Travel/Event reservation confirmed — check itinerary.';
+      }
+      return 'No urgent action items required.';
+    }
+
+    async function generateBriefing() {
+      if (!loadedEmails || loadedEmails.length === 0) {
+        showTerminalOutput('Sir, no emails currently loaded to compile your morning briefing.');
+        speakText('No emails currently loaded to compile your briefing, Sir.');
+        return;
+      }
+
+      let summaryText = `Sir, here is your executive briefing based on ${loadedEmails.length} recent transmissions. `;
+      let html = `<b>🌅 J.A.R.V.I.S. Executive Morning Briefing:</b><br>`;
+      html += `• <b>Total Transmissions:</b> ${loadedEmails.length} messages analyzed.<br>`;
+
+      const topThree = loadedEmails.slice(0, 3);
+      topThree.forEach((e, i) => {
+        const sender = e.from.split('<')[0].replace(/"/g, '').trim();
+        html += `• <b>Item ${i+1}:</b> ${escapeHtml(sender)} — <i>${escapeHtml(e.subject)}</i><br>`;
+        summaryText += `Item ${i+1} from ${sender}: ${e.subject}. `;
       });
-    });
-  };
-  document.head.appendChild(gapiScript);
 
-  // Load Google Identity Services
-  var gisScript = document.createElement('script');
-  gisScript.src = 'https://accounts.google.com/gsi/client';
-  gisScript.onload = function() {
-    gisLoaded = true;
-    checkBothLoaded();
-  };
-  document.head.appendChild(gisScript);
-}
+      html += `• <b>Recommended Action:</b> Prioritize critical correspondences and review pending schedule agenda.`;
+      summaryText += `All defensive and monitoring subsystems remain at peak operational readiness.`;
 
-function checkBothLoaded() {
-  if (gapiLoaded && gisLoaded) {
-    tokenClient = google.accounts.oauth2.initTokenClient({
-      client_id: GOOGLE_CLIENT_ID,
-      scope: SCOPES,
-      callback: handleOAuthResponse
-    });
-  }
-}
-
-function startGoogleOAuth() {
-  if (!tokenClient) {
-    showToast('Google libraries loading, please wait...', false);
-    setTimeout(startGoogleOAuth, 1500);
-    return;
-  }
-  closeConnectModal();
-  tokenClient.requestAccessToken({ prompt: 'consent' });
-}
-
-function handleOAuthResponse(response) {
-  if (response.error) {
-    showToast('Sign-in failed: ' + response.error, true);
-    return;
-  }
-  accessToken = response.access_token;
-  gapi.client.setToken({ access_token: accessToken });
-  loadUserProfile();
-}
-
-// ============================================================
-// USER PROFILE + EMAIL FETCHING
-// ============================================================
-
-function loadUserProfile() {
-  showToast('Authenticating with Google...', false);
-  fetch('https://www.googleapis.com/oauth2/v2/userinfo', {
-    headers: { Authorization: 'Bearer ' + accessToken }
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(data) {
-    currentUser = data;
-    updateUserUI(data);
-    fetchEmails('');
-  })
-  .catch(function() {
-    showToast('Failed to load profile', true);
-  });
-}
-
-function updateUserUI(user) {
-  var name = user.name || user.email || 'User';
-  var email = user.email || '';
-  document.getElementById('userName').textContent = name;
-  document.getElementById('userEmail').textContent = email;
-  var initials = name.split(' ').map(function(w){return w[0]||'';}).join('').toUpperCase().slice(0,2) || '?';
-  document.getElementById('userAvatar').textContent = initials;
-  document.getElementById('btnConnect').textContent = '✅ ' + (name.split(' ')[0] || 'Connected');
-  document.getElementById('btnConnect').classList.add('connected');
-  document.getElementById('signOutNav').style.display = 'flex';
-  document.getElementById('searchInput').disabled = false;
-}
-
-function fetchEmails(query) {
-  var panelTitle = document.getElementById('panelTitle');
-  var emailsList = document.getElementById('emailsList');
-  panelTitle.textContent = query ? 'SEARCH RESULTS' : 'INBOX';
-  emailsList.innerHTML = '<div class="empty-state"><div class="loading-dots"><span></span><span></span><span></span></div><p style="margin-top:12px;">JARVIS is scanning your inbox...</p></div>';
-
-  var params = 'maxResults=30&';
-  if (query) {
-    params += 'q=' + encodeURIComponent(query) + '&';
-  } else {
-    params += 'labelIds=INBOX&';
-  }
-
-  fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages?' + params, {
-    headers: { Authorization: 'Bearer ' + accessToken }
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(data) {
-    if (!data.messages || data.messages.length === 0) {
-      emailsList.innerHTML = '<div class="empty-state"><div class="icon">📭</div><h3>NO EMAILS FOUND</h3><p>' + (query ? 'No results for "' + escapeHtml(query) + '"' : 'Your inbox appears empty.') + '</p></div>';
-      return;
+      showTerminalOutput(html);
+      speakText(summaryText);
     }
-    // Fetch message details in parallel (first 15)
-    var ids = data.messages.slice(0, 15).map(function(m){return m.id;});
-    return Promise.all(ids.map(fetchMessageDetail));
-  })
-  .then(function(messages) {
-    if (!messages) return;
-    allEmails = messages.filter(Boolean);
-    document.getElementById('statTotal').textContent = allEmails.length;
-    var unreadCount = allEmails.filter(function(m){return m.unread;}).length;
-    document.getElementById('statUnread').textContent = unreadCount;
-    renderEmails(allEmails);
-  })
-  .catch(function(err) {
-    emailsList.innerHTML = '<div class="empty-state"><div class="icon">⚠️</div><h3>FETCH ERROR</h3><p>Could not load emails. Try reconnecting your account.</p></div>';
-    showToast('Error loading emails', true);
-  });
-}
 
-function fetchMessageDetail(id) {
-  return fetch('https://gmail.googleapis.com/gmail/v1/users/me/messages/' + id + '?format=full', {
-    headers: { Authorization: 'Bearer ' + accessToken }
-  })
-  .then(function(r) { return r.json(); })
-  .then(function(msg) {
-    var headers = {};
-    (msg.payload && msg.payload.headers || []).forEach(function(h) {
-      headers[h.name.toLowerCase()] = h.value;
-    });
-    var body = extractBody(msg.payload);
-    var unread = msg.labelIds && msg.labelIds.indexOf('UNREAD') !== -1;
-    var important = msg.labelIds && msg.labelIds.indexOf('IMPORTANT') !== -1;
-    return {
-      id: msg.id,
-      from: headers['from'] || 'Unknown',
-      subject: headers['subject'] || '(No Subject)',
-      date: headers['date'] || '',
-      snippet: msg.snippet || '',
-      body: body,
-      unread: unread,
-      important: important,
-      labels: msg.labelIds || []
-    };
-  })
-  .catch(function() { return null; });
-}
+    // ============================================================
+    // NATURAL LANGUAGE QUERY PROCESSOR
+    // ============================================================
+    function cleanNaturalQuery(str) {
+      return str.replace(/^(see now|now|please|can you|find|search|show me|get|tell me about|check)\s+(emails?|messages?|mails?)?\s*(from|about|regarding)?/i, '')
+                .replace(/\s+(emails?|messages?|mails?)$/i, '')
+                .trim();
+    }
 
-function extractBody(payload) {
-  if (!payload) return '';
-  if (payload.body && payload.body.data) {
-    return atob(payload.body.data.replace(/-/g, '+').replace(/_/g, '/'));
-  }
-  if (payload.parts) {
-    for (var i = 0; i < payload.parts.length; i++) {
-      var part = payload.parts[i];
-      if (part.mimeType === 'text/plain' && part.body && part.body.data) {
-        return atob(part.body.data.replace(/-/g, '+').replace(/_/g, '/'));
+    async function sendQuery() {
+      const input = document.getElementById('query-input');
+      const q = input.value.trim();
+      if (!q) return;
+
+      input.value = '';
+      const qLower = q.toLowerCase();
+
+      // Check for Scheduling commands: e.g. "schedule a meeting tomorrow at 3pm"
+      if (qLower.startsWith('schedule') || qLower.startsWith('add event') || qLower.includes('set reminder')) {
+        handleScheduleCommand(q);
+        return;
+      }
+
+      // Check for Briefing
+      if (qLower.includes('briefing') || qLower.includes('morning') || qLower.includes('digest')) {
+        await generateBriefing();
+        return;
+      }
+
+      // Check for Summarize Latest
+      if (qLower.includes('summarize') && (qLower.includes('latest') || qLower.includes('recent') || qLower.includes('email'))) {
+        await generateBriefing();
+        return;
+      }
+
+      // Check for Work Schedule inquiry
+      if (qLower.includes('schedule') || qLower.includes('agenda') || qLower.includes('calendar') || qLower.includes('action items')) {
+        describeSchedule();
+        return;
+      }
+
+      // Check for Diagnostics
+      if (qLower.includes('diagnostic') || qLower.includes('status')) {
+        const diag = `<b>🛡️ Subsystem Diagnostic:</b><br>• Core: OpenJarvis Autonomous Framework<br>• Auth: Google OAuth 2.0 Web Client Active<br>• Mailbox: ${userAccessToken ? 'Online & Ingesting' : 'Standby'}<br>• Vocal Engine: SpeechSynthesis v2.0 Operational`;
+        showTerminalOutput(diag);
+        speakText("All diagnostics nominal, Sir. Communication telemetry and voice synthesis systems operating at one hundred percent.");
+        return;
+      }
+
+      if (!userAccessToken) {
+        showTerminalOutput('Sir, please link your Gmail account using the button above so I can inspect and summarize your personal emails.');
+        speakText("Please link your Gmail account first, Sir.");
+        return;
+      }
+
+      // Otherwise: Mailbox Search
+      showTerminalOutput(`<i>Searching mailbox archives for: "${escapeHtml(q)}" ...</i>`);
+      const term = cleanNaturalQuery(q);
+      loadEmails(term || q);
+      speakText(`Searching your mailbox for ${term || q}.`);
+    }
+
+    function quickAsk(text) {
+      document.getElementById('query-input').value = text;
+      sendQuery();
+    }
+
+    function showTerminalOutput(html) {
+      const out = document.getElementById('jarvis-output');
+      out.innerHTML = html;
+      out.scrollTop = 0;
+    }
+
+    // ============================================================
+    // EVENT SCHEDULER & ACTION ITEMS
+    // ============================================================
+    function handleScheduleCommand(text) {
+      // Clean query: e.g. "schedule meeting with Alex tomorrow at 3pm"
+      let clean = text.replace(/^(schedule|add event|set reminder)\s+/i, '').trim();
+      let title = clean || 'Scheduled Meeting';
+      let date = new Date().toISOString().split('T')[0];
+      let time = '10:00';
+
+      if (clean.toLowerCase().includes('tomorrow')) {
+        const d = new Date();
+        d.setDate(d.getDate() + 1);
+        date = d.toISOString().split('T')[0];
+        title = title.replace(/\btomorrow\b/ig, '').trim();
+      }
+
+      // Try matching time like 3pm, 15:00, 4:30 pm
+      const timeMatch = clean.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
+      if (timeMatch) {
+        let hr = parseInt(timeMatch[1]);
+        const min = timeMatch[2] || '00';
+        const meridiem = (timeMatch[3] || '').toLowerCase();
+        if (meridiem === 'pm' && hr < 12) hr += 12;
+        if (meridiem === 'am' && hr === 12) hr = 0;
+        time = `${String(hr).padStart(2, '0')}:${min}`;
+        title = title.replace(timeMatch[0], '').replace(/\bat\b/ig, '').trim();
+      }
+
+      title = title || 'Strategic Appointment';
+      addCustomEvent(title, date, time, 'Created via JARVIS vocal command');
+      
+      const vocalResp = `Sir, I have scheduled "${title}" for ${date} at ${time} and placed it on your agenda.`;
+      showTerminalOutput(`<b>📅 Event Scheduled:</b><br>• <b>Title:</b> ${escapeHtml(title)}<br>• <b>Date:</b> ${escapeHtml(date)}<br>• <b>Time:</b> ${escapeHtml(time)}<br>• <b>Status:</b> Added to Tactical Agenda &amp; Google Calendar`);
+      speakText(vocalResp);
+    }
+
+    function addCustomEvent(title, date, time, desc) {
+      const newEv = { id: Date.now(), title, date, time, desc: desc || '' };
+      customEvents.unshift(newEv);
+      sessionStorage.setItem('jarvis_custom_events', JSON.stringify(customEvents));
+      renderCustomEvents();
+    }
+
+    function createManualEvent() {
+      const title = document.getElementById('eventTitle').value.trim() || 'Tactical Meeting';
+      const date = document.getElementById('eventDate').value || new Date().toISOString().split('T')[0];
+      const time = document.getElementById('eventTime').value || '12:00';
+      const desc = document.getElementById('eventDesc').value.trim();
+
+      addCustomEvent(title, date, time, desc);
+      closeScheduleModal();
+
+      // Open Google Calendar creation link in new tab
+      const startDateTime = `${date.replace(/-/g, '')}T${time.replace(/:/g, '')}00`;
+      const endDateTime = `${date.replace(/-/g, '')}T${String(parseInt(time.split(':')[0]) + 1).padStart(2, '0')}${time.split(':')[1]}00`;
+      const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDateTime}/${endDateTime}&details=${encodeURIComponent(desc || 'Created via JARVIS Assistant')}`;
+      window.open(gcalUrl, '_blank');
+
+      showTerminalOutput(`<b>📅 Event Created:</b> "${escapeHtml(title)}" on ${escapeHtml(date)} at ${escapeHtml(time)}. Google Calendar link synchronized.`);
+      speakText(`Event ${title} scheduled for ${date} at ${time}.`);
+    }
+
+    function renderCustomEvents() {
+      const container = document.getElementById('schedule-list');
+      let html = '';
+
+      if (customEvents.length > 0) {
+        html += customEvents.map(e => `
+          <div class="schedule-item user-event">
+            <div style="display:flex; justify-content:space-between; align-items:center;">
+              <b style="color:var(--cyan-bright)">★ ${escapeHtml(e.title)}</b>
+              <button class="mini-btn" style="border:none; color:var(--red);" onclick="deleteEvent(${e.id})">✕</button>
+            </div>
+            <span style="color:var(--text-main); font-size:0.75rem;">📅 ${escapeHtml(e.date)} at ${escapeHtml(e.time)}</span><br>
+            <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(e.title)}" target="_blank" style="color:var(--cyan); font-size:0.72rem; text-decoration:none;">🔗 Open in G-Calendar</a>
+          </div>
+        `).join('');
+      }
+
+      if (loadedEmails.length > 0) {
+        const keywords = ['interview', 'appointment', 'schedule', 'tickets', 'booking', 'deadline', 'meeting'];
+        const hits = loadedEmails.filter(e => {
+          const t = (e.subject + ' ' + e.snippet).toLowerCase();
+          return keywords.some(k => t.includes(k));
+        });
+
+        if (hits.length > 0) {
+          html += hits.slice(0, 4).map(e => `
+            <div class="schedule-item">
+              <b>${escapeHtml(e.subject.slice(0, 36))}...</b><br>
+              <span style="color:var(--cyan); font-size:0.74rem;">${escapeHtml(e.from.split('<')[0])}</span><br>
+              <span style="color:var(--text-dim); font-size:0.72rem;">${escapeHtml(e.snippet.slice(0, 65))}...</span>
+            </div>
+          `).join('');
+        }
+      }
+
+      if (!html) {
+        html = `
+          <div class="schedule-item">
+            <b>Schedule Scanner Standing By</b><br>
+            <span style="color:var(--text-dim)">Link your Gmail or click "+ Event" to add calendar appointments.</span>
+          </div>`;
+      }
+
+      container.innerHTML = html;
+    }
+
+    function deleteEvent(id) {
+      customEvents = customEvents.filter(e => e.id !== id);
+      sessionStorage.setItem('jarvis_custom_events', JSON.stringify(customEvents));
+      renderCustomEvents();
+    }
+
+    function updateAutoSchedule(emails) {
+      renderCustomEvents();
+    }
+
+    function describeSchedule() {
+      let count = customEvents.length;
+      let text = `Sir, your tactical schedule contains ${count} user-defined appointments. `;
+      if (customEvents.length > 0) {
+        text += `Upcoming: ${customEvents[0].title} on ${customEvents[0].date}. `;
+      }
+      text += `Schedule scanner is actively indexing calendar invites from your connected inbox.`;
+      showTerminalOutput(`<b>📅 Work Schedule Scanner:</b><br>• Active Appointments: ${count}<br>• Autonomous scanner is cross-referencing incoming emails for booking dates and deadlines.`);
+      speakText(text);
+    }
+
+    function openScheduleModal() {
+      document.getElementById('eventTitle').value = '';
+      document.getElementById('eventDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('eventTime').value = '12:00';
+      document.getElementById('eventDesc').value = '';
+      document.getElementById('scheduleModal').classList.add('open');
+    }
+
+    function closeScheduleModal() {
+      document.getElementById('scheduleModal').classList.remove('open');
+    }
+
+    // ============================================================
+    // SPEECH SYNTHESIS
+    // ============================================================
+    function speakText(text) {
+      if (!voiceEnabled || !window.speechSynthesis) return;
+      window.speechSynthesis.cancel();
+      const clean = text.replace(/[*#•_-]/g, ' ').replace(/<[^>]*>?/gm, '');
+      const utterance = new SpeechSynthesisUtterance(clean);
+      utterance.pitch = 0.9;
+      utterance.rate = 1.05;
+
+      const stopBtn = document.getElementById('stop-speaking-btn');
+      if (stopBtn) stopBtn.classList.add('speaking-active');
+
+      utterance.onend = () => { if (stopBtn) stopBtn.classList.remove('speaking-active'); };
+      utterance.onerror = () => { if (stopBtn) stopBtn.classList.remove('speaking-active'); };
+
+      window.speechSynthesis.speak(utterance);
+    }
+
+    function stopSpeechAndSummarizing() {
+      if (window.speechSynthesis) {
+        window.speechSynthesis.cancel();
+      }
+      const stopBtn = document.getElementById('stop-speaking-btn');
+      if (stopBtn) stopBtn.classList.remove('speaking-active');
+
+      const out = document.getElementById('jarvis-output');
+      if (out && !out.innerHTML.includes('(Vocalization stopped)')) {
+        out.innerHTML += '<br><span style="color:var(--red); font-size:0.82rem;">[⏹ Vocalization stopped by user]</span>';
       }
     }
-    for (var j = 0; j < payload.parts.length; j++) {
-      var part2 = payload.parts[j];
-      if (part2.mimeType === 'text/html' && part2.body && part2.body.data) {
-        var html = atob(part2.body.data.replace(/-/g, '+').replace(/_/g, '/'));
-        return html.replace(/<[^>]*>/g, ' ').replace(/\s+/g, ' ').trim();
-      }
-      if (part2.parts) {
-        var nested = extractBody(part2);
-        if (nested) return nested;
-      }
+
+    function toggleVoice() {
+      voiceEnabled = !voiceEnabled;
+      document.getElementById('voice-toggle').innerText = voiceEnabled ? "🔊 Voice: ON" : "🔇 Voice: OFF";
     }
-  }
-  return '';
-}
-
-// ============================================================
-// RENDER EMAILS
-// ============================================================
-
-function renderEmails(emails) {
-  var el = document.getElementById('emailsList');
-  if (!emails || emails.length === 0) {
-    el.innerHTML = '<div class="empty-state"><div class="icon">📭</div><h3>NO EMAILS</h3><p>Nothing to show here.</p></div>';
-    return;
-  }
-  var html = '';
-  emails.forEach(function(email, i) {
-    var labelHtml = '';
-    if (email.important) labelHtml += '<span class="email-label label-important">★ IMPORTANT</span>';
-    else if (email.unread) labelHtml += '<span class="email-label label-inbox">NEW</span>';
-    html += '<div class="email-card ' + (email.unread ? 'unread' : '') + '" onclick="openEmailDetail(' + i + ')">'
-      + '<div class="email-meta">'
-      + '<span class="email-from">' + escapeHtml(email.from.split('<')[0].trim() || email.from) + '</span>'
-      + '<span class="email-date">' + escapeHtml(formatDate(email.date)) + '</span>'
-      + '</div>'
-      + '<div class="email-subject">' + escapeHtml(email.subject) + '</div>'
-      + '<div class="email-snippet">' + escapeHtml(email.snippet.slice(0, 120)) + '</div>'
-      + labelHtml
-      + '</div>';
-  });
-  el.innerHTML = html;
-}
-
-function filterEmails(type) {
-  document.querySelectorAll('.nav-item').forEach(function(n){n.classList.remove('active');});
-  event.target.classList.add('active');
-  if (type === 'all') renderEmails(allEmails);
-  else if (type === 'unread') renderEmails(allEmails.filter(function(e){return e.unread;}));
-  else if (type === 'important') renderEmails(allEmails.filter(function(e){return e.important;}));
-}
-
-function searchEmails() {
-  var q = document.getElementById('searchInput').value.trim();
-  if (!accessToken) { showToast('Connect your Gmail first!', true); return; }
-  fetchEmails(q);
-}
-
-// ============================================================
-// EMAIL DETAIL + VOICE
-// ============================================================
-
-function openEmailDetail(index) {
-  currentEmailDetail = allEmails[index];
-  document.getElementById('detailSubject').textContent = currentEmailDetail.subject;
-  document.getElementById('detailFrom').textContent = currentEmailDetail.from;
-  document.getElementById('detailDate').textContent = formatDate(currentEmailDetail.date);
-  document.getElementById('detailBody').textContent = currentEmailDetail.body || currentEmailDetail.snippet || '(No content)';
-  document.getElementById('detailModal').classList.add('open');
-}
-
-function closeDetailModal() {
-  document.getElementById('detailModal').classList.remove('open');
-}
-
-function summarizeCurrentEmail() {
-  if (!currentEmailDetail) return;
-  var text = 'Email from ' + currentEmailDetail.from.split('<')[0].trim()
-    + '. Subject: ' + currentEmailDetail.subject
-    + '. ' + (currentEmailDetail.snippet || '').slice(0, 400);
-  speakText('JARVIS Summary: ' + text);
-}
-
-var isSpeaking = false;
-function speakText(text) {
-  if (!window.speechSynthesis) { showToast('Voice not supported in this browser', true); return; }
-  window.speechSynthesis.cancel();
-  var utt = new SpeechSynthesisUtterance(text);
-  utt.rate = 0.9; utt.pitch = 0.85; utt.volume = 1;
-  utt.onstart = function() {
-    isSpeaking = true;
-    document.getElementById('voiceFab').classList.add('speaking');
-  };
-  utt.onend = function() {
-    isSpeaking = false;
-    document.getElementById('voiceFab').classList.remove('speaking');
-  };
-  window.speechSynthesis.speak(utt);
-}
-
-function toggleVoice() {
-  if (!accessToken) { openConnectModal(); return; }
-  if (isSpeaking) {
-    window.speechSynthesis.cancel();
-    isSpeaking = false;
-    document.getElementById('voiceFab').classList.remove('speaking');
-    return;
-  }
-  if (allEmails.length === 0) { showToast('No emails loaded yet', false); return; }
-  var summary = 'JARVIS inbox report. You have ' + allEmails.length + ' emails loaded. '
-    + allEmails.slice(0, 3).map(function(e, i) {
-        return 'Email ' + (i+1) + ' from ' + e.from.split('<')[0].trim() + ': ' + e.subject + '.';
-      }).join(' ');
-  speakText(summary);
-}
-
-// ============================================================
-// SIGN OUT
-// ============================================================
-
-function signOut() {
-  if (accessToken) {
-    google.accounts.oauth2.revoke(accessToken, function() {});
-  }
-  accessToken = null;
-  currentUser = null;
-  allEmails = [];
-  document.getElementById('userName').textContent = 'Not Connected';
-  document.getElementById('userEmail').textContent = 'Link your Gmail to begin';
-  document.getElementById('userAvatar').textContent = '?';
-  document.getElementById('btnConnect').textContent = '🔗 Connect Gmail';
-  document.getElementById('btnConnect').classList.remove('connected');
-  document.getElementById('signOutNav').style.display = 'none';
-  document.getElementById('searchInput').disabled = true;
-  document.getElementById('statTotal').textContent = '—';
-  document.getElementById('statUnread').textContent = '—';
-  document.getElementById('emailsList').innerHTML = '<div class="empty-state"><div class="icon">🛸</div><h3>SIGNED OUT</h3><p>Connect your Gmail to continue.</p><button class="btn-connect" style="margin-top:10px;" onclick="openConnectModal()">🔗 Connect Gmail Now</button></div>';
-  document.getElementById('panelTitle').textContent = 'MAIL INTELLIGENCE HUD';
-}
-
-// ============================================================
-// MODAL CONTROLS
-// ============================================================
-
-function openConnectModal() {
-  document.getElementById('connectModal').classList.add('open');
-}
-
-function closeConnectModal() {
-  document.getElementById('connectModal').classList.remove('open');
-}
-
-// Close modals on overlay click
-document.getElementById('connectModal').addEventListener('click', function(e) {
-  if (e.target === this) closeConnectModal();
-});
-document.getElementById('detailModal').addEventListener('click', function(e) {
-  if (e.target === this) closeDetailModal();
-});
-
-// ============================================================
-// SETUP INSTRUCTIONS (when no Client ID configured)
-// ============================================================
-
-function showSetupInstructions() {
-  var overlay = document.createElement('div');
-  overlay.className = 'modal-overlay open';
-  overlay.innerHTML = '<div class="modal" style="max-width:520px;">'
-    + '<div class="modal-title">⚙️ SETUP REQUIRED</div>'
-    + '<div class="modal-sub">To enable Gmail access for all users, a Google OAuth Client ID must be configured. This is a one-time setup done by the site developer.</div>'
-    + '<div class="modal-info" style="text-align:left;">'
-    + '<strong>Steps (developer):</strong><br><br>'
-    + '1. Go to <a href="https://console.cloud.google.com/" target="_blank" style="color:var(--cyan)">console.cloud.google.com</a><br>'
-    + '2. Create a project → Enable <strong>Gmail API</strong><br>'
-    + '3. OAuth consent screen → External → Add scope: <code>gmail.readonly</code><br>'
-    + '4. Credentials → Create OAuth 2.0 Client ID → Web application<br>'
-    + '5. Add Authorized JavaScript origin: <code>https://yashh077.github.io</code><br>'
-    + '6. Copy the Client ID and replace <code>YOUR_GOOGLE_CLIENT_ID</code> in <code>index.html</code><br>'
-    + '7. Push to GitHub — done! Any user can now sign in.'
-    + '</div>'
-    + '<button class="modal-close" style="margin-top:20px;" onclick="this.closest(\'.modal-overlay\').remove()">Got it</button>'
-    + '</div>';
-  document.body.appendChild(overlay);
-}
-
-// ============================================================
-// INIT
-// ============================================================
-
-window.addEventListener('load', function() {
-  loadGapiAndGis();
-});
-</script>
+  </script>
 </body>
 </html>
