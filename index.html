@@ -764,6 +764,11 @@
   </footer>
 
   <script>
+    // Force clean any legacy stale storage from previous versions
+    if (localStorage.getItem('jarvis_is_demo') || localStorage.getItem('jarvis_user_email')?.includes('yashwanth') || localStorage.getItem('jarvis_user_email')?.includes('demo.client@gmail.com')) {
+      localStorage.clear();
+    }
+
     let activeUser = localStorage.getItem('jarvis_user_email') || '';
     let activePwd = localStorage.getItem('jarvis_user_pwd') || '';
     let isConnected = localStorage.getItem('jarvis_connected') === 'true';
