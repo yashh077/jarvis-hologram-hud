@@ -764,9 +764,14 @@
   </footer>
 
   <script>
-    // Force clean any legacy stale storage from previous versions
-    if (localStorage.getItem('jarvis_is_demo') || localStorage.getItem('jarvis_user_email')?.includes('yashwanth') || localStorage.getItem('jarvis_user_email')?.includes('demo.client@gmail.com')) {
-      localStorage.clear();
+    // Ensure clean initialization without syntax errors
+    try {
+      const storedEmail = localStorage.getItem('jarvis_user_email') || '';
+      if (localStorage.getItem('jarvis_is_demo') || (storedEmail && (storedEmail.indexOf('yashwanth') !== -1 || storedEmail.indexOf('demo.client') !== -1))) {
+        localStorage.clear();
+      }
+    } catch (e) {
+      console.warn("Storage reset check:", e);
     }
 
     let activeUser = localStorage.getItem('jarvis_user_email') || '';
@@ -1102,23 +1107,6 @@
           <i>Tip: Use <b>"➕ Ingest Message"</b> to test real client emails directly.</i>
         `;
         speakText(`No cached records found for ${cleanTerm || q}.`);
-      }
-    }
-      );
-
-      if (hits.length > 0) {
-        let resHTML = `<b>Archive Search Complete — Records for "${cleanTerm || q}":</b><br>`;
-        let resSpeech = `I found records for ${cleanTerm || q}. `;
-        hits.forEach(h => {
-          resHTML += `• <b>${escapeHtml(h.from.split('<')[0])}:</b> ${escapeHtml(h.subject)}<br>&nbsp;&nbsp;<i>${escapeHtml(h.snippet)}</i><br>`;
-          resSpeech += `From ${h.from.split('<')[0]}: ${h.subject}. `;
-        });
-        output.innerHTML = resHTML;
-        speakText(resSpeech);
-      } else {
-        const noRes = `Sir, no matching records found in archive for "${cleanTerm || q}".`;
-        output.innerHTML = noRes;
-        speakText(noRes);
       }
     }
 
