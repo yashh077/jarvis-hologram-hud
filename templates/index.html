@@ -431,6 +431,29 @@
     .terminal-output b { color: var(--cyan); }
     .terminal-output i { color: var(--cyan-bright); }
 
+    .summary-card {
+      background: rgba(0, 229, 255, 0.04);
+      border: 1px solid rgba(0, 229, 255, 0.2);
+      border-radius: 6px;
+      padding: 10px 12px;
+      margin-top: 8px;
+    }
+    .badge {
+      display: inline-block;
+      padding: 2px 7px;
+      border-radius: 10px;
+      font-size: 0.68rem;
+      font-weight: 700;
+      letter-spacing: 0.8px;
+      font-family: 'Orbitron', monospace;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+    .badge-critical { background: rgba(239, 68, 68, 0.2); color: #ef4444; border: 1px solid #ef4444; }
+    .badge-high { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; }
+    .badge-medium { background: rgba(0, 229, 255, 0.2); color: #00e5ff; border: 1px solid #00e5ff; }
+    .badge-info { background: rgba(56, 249, 215, 0.2); color: #38f9d7; border: 1px solid #38f9d7; }
+
     .input-bar {
       display: flex;
       gap: 8px;
@@ -925,38 +948,126 @@
     // ============================================================
     // AI SUMMARIZER & ASSISTANT INTELLIGENCE
     // ============================================================
+    // ============================================================
+    // AI DEEP CONTEXTUAL SUMMARIZER & INTELLIGENCE
+    // ============================================================
+    function analyzeEmail(e) {
+      const text = ((e.from || '') + ' ' + (e.subject || '') + ' ' + (e.snippet || '')).toLowerCase();
+      const sender = (e.from || 'Unknown').split('<')[0].replace(/"/g, '').trim();
+
+      // 1. Financial / Regulatory / Securities / Trading / Demat / BSE / NSE
+      if (text.includes('bse') || text.includes('nse') || text.includes('sebi') || text.includes('cdsl') || text.includes('nsdl') || text.includes('demat') || text.includes('broker') || text.includes('securities') || text.includes('portfolio') || text.includes('mutual fund') || text.includes('sip') || text.includes('holding') || text.includes('dividend') || text.includes('collateral') || text.includes('funds balance')) {
+        return {
+          category: 'Financial & Securities Disclosure',
+          importance: 'Medium - Informational',
+          badgeClass: 'badge-medium',
+          context: `Official regulatory securities statement from ${sender}.`,
+          explanation: `This is a mandated investor disclosure detailing the collateral segregation and recorded balance of funds or securities across your broker accounts. Exchanges (like BSE/NSE) issue these periodic statements so investors can verify their depository holdings against broker ledgers.`,
+          action: 'Compare the recorded holdings against your brokerage portfolio. No direct action required unless an accounting discrepancy exists.',
+          vocal: `This is a regulatory securities statement from ${sender} regarding your funds and collateral balance. In short, it is an official exchange disclosure confirming your recorded holdings across broker accounts. Importance is informational, and no immediate action is required.`
+        };
+      }
+
+      // 2. Security Alerts / Passwords / OTP / 2FA
+      if (text.includes('otp') || text.includes('one time password') || text.includes('security alert') || text.includes('suspicious') || text.includes('new login') || text.includes('password reset') || text.includes('verification code') || text.includes('unauthorized')) {
+        return {
+          category: 'Security & Access Verification',
+          importance: 'Critical - Immediate Attention',
+          badgeClass: 'badge-critical',
+          context: `Security event or authentication token issued for your account.`,
+          explanation: `Contains a time-sensitive verification code, login event alert, or credential update notification.`,
+          action: 'If initiated by you, apply the verification code immediately. If unrecognized, change your account credentials and revoke active sessions.',
+          vocal: `High-priority security notification from ${sender}. It contains a time-sensitive verification code or access event alert. Please ensure this activity was authorized by you.`
+        };
+      }
+
+      // 3. Banking / Transactions / Debits / Credits
+      if (text.includes('credited') || text.includes('debited') || text.includes('bank') || text.includes('atm') || text.includes('upi') || text.includes('transaction') || text.includes('statement') || text.includes('card ending')) {
+        return {
+          category: 'Banking Transaction & Statement',
+          importance: 'High - Financial Record',
+          badgeClass: 'badge-high',
+          context: `Bank transaction notification or ledger statement from ${sender}.`,
+          explanation: `Reports monetary debit, credit transfer, or monthly statement summary on your financial account.`,
+          action: 'Verify transaction amounts and reconcile against your bank statement records.',
+          vocal: `Banking transaction notification from ${sender}. It outlines recent funds transfer activity. Importance is high for financial record tracking.`
+        };
+      }
+
+      // 4. Job Offers / Interviews / Career / HR
+      if (text.includes('interview') || text.includes('offer letter') || text.includes('application status') || text.includes('hiring') || text.includes('shortlisted') || text.includes('recruitment') || text.includes('assessment') || text.includes('job opening') || text.includes('naukri') || text.includes('linkedin')) {
+        return {
+          category: 'Career & Recruitment Opportunity',
+          importance: 'High - Action Recommended',
+          badgeClass: 'badge-high',
+          context: `Recruitment correspondence concerning employment status or interview coordination.`,
+          explanation: `An employer, hiring team, or talent agency is reviewing your profile or requesting availability for discussion rounds.`,
+          action: 'Review scheduled interview times, prepare candidate documentation, and acknowledge communication.',
+          vocal: `Career recruitment communication from ${sender} regarding ${e.subject}. They are contacting you regarding interview availability or employment status. Importance is high.`
+        };
+      }
+
+      // 5. Invoices / Bills / Payments Due
+      if (text.includes('invoice') || text.includes('bill') || text.includes('receipt') || text.includes('amount due') || text.includes('payment due') || text.includes('subscription renewed') || text.includes('billing')) {
+        return {
+          category: 'Billing & Service Invoice',
+          importance: 'Medium - Time Sensitive',
+          badgeClass: 'badge-medium',
+          context: `Commercial billing invoice or purchase receipt from ${sender}.`,
+          explanation: `Summarizes subscription charges, service fees, or utility expenses with specified payment due dates.`,
+          action: 'Confirm validity of charges and ensure settlement before due date to avoid service disruption.',
+          vocal: `Billing invoice from ${sender} for ${e.subject}. It summarizes commercial charges and due dates. Importance is time sensitive.`
+        };
+      }
+
+      // 6. Travel / Reservations / Bookings
+      if (text.includes('ticket') || text.includes('booking') || text.includes('flight') || text.includes('boarding pass') || text.includes('hotel') || text.includes('pnr') || text.includes('reservation')) {
+        return {
+          category: 'Travel & Reservation Itinerary',
+          importance: 'Medium - Travel Schedule',
+          badgeClass: 'badge-medium',
+          context: `Confirmed reservation voucher or itinerary from ${sender}.`,
+          explanation: `Contains schedule timings, seat allocations, booking references (PNR), and venue instructions.`,
+          action: 'Cross-check departure dates and keep confirmation barcode or PDF available for check-in.',
+          vocal: `Travel and booking confirmation from ${sender}. It outlines your reservation schedule and itinerary details.`
+        };
+      }
+
+      // 7. General Updates & Correspondence
+      return {
+        category: 'General Communication',
+        importance: 'Informational',
+        badgeClass: 'badge-info',
+        context: `Direct message or service correspondence from ${sender}.`,
+        explanation: e.snippet ? `${e.snippet.slice(0, 160)}...` : 'Platform update or general inquiry.',
+        action: 'Review at your convenience; archive or mark read if no further response is needed.',
+        vocal: `Message from ${sender} regarding ${e.subject}. In short, it is an informational update. Importance is normal.`
+      };
+    }
+
     function summarizeSingleEmail(index) {
       const e = loadedEmails[index];
       if (!e) return;
 
+      const analysis = analyzeEmail(e);
       const sender = e.from.split('<')[0].replace(/"/g, '').trim();
+
       const outputHTML = `
-        <b>🤖 AI Email Summary:</b><br>
-        • <b>Sender:</b> ${escapeHtml(sender)}<br>
-        • <b>Subject:</b> ${escapeHtml(e.subject)}<br>
-        • <b>Key Content:</b> ${escapeHtml(e.snippet)}<br>
-        • <b>Action Items:</b> ${detectActionItems(e.subject + ' ' + e.snippet)}
+        <div style="margin-bottom:6px;">
+          <span class="badge ${analysis.badgeClass}">${analysis.importance}</span>
+          <b style="color:var(--cyan); font-size:0.92rem; margin-left:6px;">${analysis.category}</b>
+        </div>
+        <div class="summary-card">
+          • <b>Sender:</b> ${escapeHtml(sender)} &nbsp;·&nbsp; <i>${escapeHtml(e.date ? e.date.split(' ').slice(1,4).join(' ') : '')}</i><br>
+          • <b>Subject:</b> ${escapeHtml(e.subject)}<br>
+          • <b>Context &amp; Meaning:</b> ${escapeHtml(analysis.explanation)}<br>
+          • <b>Tactical Action:</b> ${escapeHtml(analysis.action)}<br>
+          • <b>Raw Transmit Excerpt:</b> <span style="color:var(--text-dim); font-size:0.78rem;">${escapeHtml(e.snippet.slice(0, 160))}...</span>
+        </div>
       `;
 
       showTerminalOutput(outputHTML);
-      speakText(`Summary of email from ${sender}. Subject: ${e.subject}. ${e.snippet.slice(0, 180)}`);
-    }
-
-    function detectActionItems(text) {
-      const lower = text.toLowerCase();
-      if (lower.includes('meeting') || lower.includes('call') || lower.includes('zoom')) {
-        return 'Review calendar schedule and confirm meeting link.';
-      }
-      if (lower.includes('invoice') || lower.includes('bill') || lower.includes('payment')) {
-        return 'Financial review required — check payment deadline.';
-      }
-      if (lower.includes('apply') || lower.includes('interview') || lower.includes('application')) {
-        return 'Recruitment follow-up — prepare credentials.';
-      }
-      if (lower.includes('ticket') || lower.includes('booking') || lower.includes('flight')) {
-        return 'Travel/Event reservation confirmed — check itinerary.';
-      }
-      return 'No urgent action items required.';
+      speakText(analysis.vocal);
     }
 
     async function generateBriefing() {
@@ -967,17 +1078,23 @@
       }
 
       let summaryText = `Sir, here is your executive briefing based on ${loadedEmails.length} recent transmissions. `;
-      let html = `<b>🌅 J.A.R.V.I.S. Executive Morning Briefing:</b><br>`;
+      let html = `<b>🌅 J.A.R.V.I.S. Executive Mail Briefing:</b><br>`;
       html += `• <b>Total Transmissions:</b> ${loadedEmails.length} messages analyzed.<br>`;
 
       const topThree = loadedEmails.slice(0, 3);
       topThree.forEach((e, i) => {
+        const analysis = analyzeEmail(e);
         const sender = e.from.split('<')[0].replace(/"/g, '').trim();
-        html += `• <b>Item ${i+1}:</b> ${escapeHtml(sender)} — <i>${escapeHtml(e.subject)}</i><br>`;
-        summaryText += `Item ${i+1} from ${sender}: ${e.subject}. `;
+        html += `
+          <div class="summary-card" style="margin-top:6px; padding:6px 10px;">
+            <span class="badge ${analysis.badgeClass}" style="font-size:0.62rem; padding:1px 5px;">${analysis.importance}</span>
+            <b>${i+1}. ${escapeHtml(sender)}:</b> <i>${escapeHtml(e.subject)}</i><br>
+            <span style="font-size:0.8rem; color:var(--text-main);">${escapeHtml(analysis.context)}</span>
+          </div>`;
+        summaryText += `Item ${i+1} from ${sender}. ${analysis.context} `;
       });
 
-      html += `• <b>Recommended Action:</b> Prioritize critical correspondences and review pending schedule agenda.`;
+      html += `<div style="margin-top:8px; color:var(--cyan-bright); font-size:0.82rem;">• <b>Subsystem Status:</b> All defensive and scheduling channels operational.</div>`;
       summaryText += `All defensive and monitoring subsystems remain at peak operational readiness.`;
 
       showTerminalOutput(html);
@@ -1039,11 +1156,116 @@
         return;
       }
 
-      // Otherwise: Mailbox Search
-      showTerminalOutput(`<i>Searching mailbox archives for: "${escapeHtml(q)}" ...</i>`);
-      const term = cleanNaturalQuery(q);
-      loadEmails(term || q);
-      speakText(`Searching your mailbox for ${term || q}.`);
+      const cleanTerm = cleanNaturalQuery(q);
+      const searchTerm = (cleanTerm || q).toLowerCase();
+
+      // 1. FAST LOCAL SEARCH (Instant response from loaded emails)
+      const localMatches = loadedEmails.filter(e => {
+        const hay = ((e.from || '') + ' ' + (e.subject || '') + ' ' + (e.snippet || '')).toLowerCase();
+        return hay.includes(searchTerm);
+      });
+
+      if (localMatches.length > 0) {
+        // Render instant response
+        let outHtml = `<b>🎯 Located ${localMatches.length} Transmission(s) for "${escapeHtml(cleanTerm || q)}":</b><br>`;
+        let speakResp = `Sir, I found ${localMatches.length} matching transmission in your inbox. `;
+
+        localMatches.slice(0, 2).forEach((match, idx) => {
+          const analysis = analyzeEmail(match);
+          const sender = match.from.split('<')[0].replace(/"/g, '').trim();
+          outHtml += `
+            <div class="summary-card">
+              <span class="badge ${analysis.badgeClass}">${analysis.importance}</span>
+              <b style="color:var(--cyan);">${escapeHtml(sender)}:</b> <i>${escapeHtml(match.subject)}</i><br>
+              • <b>Context:</b> ${escapeHtml(analysis.explanation)}<br>
+              • <b>Recommendation:</b> ${escapeHtml(analysis.action)}
+            </div>
+          `;
+          if (idx === 0) {
+            speakResp += `From ${sender} regarding ${match.subject}. ${analysis.context}`;
+          }
+        });
+
+        showTerminalOutput(outHtml);
+        speakText(speakResp);
+
+        // Highlight in left inbox feed too
+        const container = document.getElementById('inbox-feed');
+        container.innerHTML = localMatches.map((e, idx) => `
+          <div class="inbox-card" onclick="summarizeSingleEmail(${loadedEmails.indexOf(e)})">
+            <div class="card-top">
+              <span>${escapeHtml(e.from.split('<')[0].replace(/"/g, ''))}</span>
+              <span style="font-size:0.7rem; color:var(--text-dim);">${escapeHtml(e.date ? e.date.split(' ').slice(1,4).join(' ') : '')}</span>
+            </div>
+            <div class="card-subject">${escapeHtml(e.subject)}</div>
+            <div class="card-snippet">${escapeHtml(e.snippet)}</div>
+            <div class="card-actions">
+              <button class="mini-btn" onclick="event.stopPropagation(); summarizeSingleEmail(${loadedEmails.indexOf(e)})">🤖 Summarize</button>
+            </div>
+          </div>
+        `).join('');
+        return;
+      }
+
+      // 2. CLOUD ARCHIVE SEARCH (If not found in local first 15)
+      showTerminalOutput(`<i>Scanning Gmail cloud archives for "${escapeHtml(cleanTerm || q)}" ...</i>`);
+      try {
+        const url = `https://gmail.googleapis.com/gmail/v1/users/me/messages?maxResults=6&q=${encodeURIComponent(cleanTerm || q)}`;
+        const res = await fetch(url, { headers: { 'Authorization': `Bearer ${userAccessToken}` } });
+        const data = await res.json();
+        const msgs = data.messages || [];
+
+        if (msgs.length === 0) {
+          const noHit = `<b>🔍 Archive Search Complete:</b><br>Sir, I scanned your entire mailbox for "<b>${escapeHtml(cleanTerm || q)}</b>", but found no matching records.<br><span style="color:var(--text-dim); font-size:0.8rem;">Try searching another keyword, company name, or sender.</span>`;
+          showTerminalOutput(noHit);
+          speakText(`Sir, I searched your mailbox for ${cleanTerm || q}, but found no matching records.`);
+          return;
+        }
+
+        // Fetch details for matches
+        const details = await Promise.all(msgs.slice(0, 3).map(async m => {
+          const r = await fetch(
+            `https://gmail.googleapis.com/gmail/v1/users/me/messages/${m.id}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date`,
+            { headers: { 'Authorization': `Bearer ${userAccessToken}` } }
+          );
+          const d = await r.json();
+          const headers = {};
+          (d.payload?.headers || []).forEach(h => headers[h.name] = h.value);
+          return {
+            id: m.id,
+            from: headers['From'] || 'Unknown',
+            subject: headers['Subject'] || '(No Subject)',
+            date: headers['Date'] || '',
+            snippet: d.snippet || ''
+          };
+        }));
+
+        let cloudHtml = `<b>🎯 Cloud Archive Matches for "${escapeHtml(cleanTerm || q)}":</b><br>`;
+        let cloudSpeak = `I located ${details.length} records in your archives. `;
+
+        details.forEach((e, idx) => {
+          const analysis = analyzeEmail(e);
+          const sender = e.from.split('<')[0].replace(/"/g, '').trim();
+          cloudHtml += `
+            <div class="summary-card">
+              <span class="badge ${analysis.badgeClass}">${analysis.importance}</span>
+              <b style="color:var(--cyan);">${escapeHtml(sender)}:</b> <i>${escapeHtml(e.subject)}</i><br>
+              • <b>Context:</b> ${escapeHtml(analysis.explanation)}<br>
+              • <b>Action:</b> ${escapeHtml(analysis.action)}
+            </div>
+          `;
+          if (idx === 0) {
+            cloudSpeak += `Transmission from ${sender} regarding ${e.subject}. ${analysis.context}`;
+          }
+        });
+
+        showTerminalOutput(cloudHtml);
+        speakText(cloudSpeak);
+
+      } catch (err) {
+        showTerminalOutput(`<b>[Error]:</b> Search request timed out or failed: ${escapeHtml(err.message)}`);
+        speakText("I encountered an issue querying the mail servers, Sir.");
+      }
     }
 
     function quickAsk(text) {
