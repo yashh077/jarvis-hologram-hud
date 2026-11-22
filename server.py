@@ -1,23 +1,29 @@
-"""JARVIS Universal Mailbox Deep Query Engine
-Directly passes any user question to Gmail's semantic and keyword search engine.
+"""JARVIS Universal Multi-User Mailbox Deep Query Engine
+Supports:
+1. Universal IMAP access (App Passwords) for ANY user.
+2. Local OAuth credentials for local master session.
+3. Completely clean of hardcoded personal information.
 """
 
 from __future__ import annotations
 
+import email
+from email.header import decode_header
+import imaplib
 import json
 import os
 import platform
 import re
-import time
 from datetime import datetime
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 
 import httpx
 import psutil
-from fastapi import FastAPI, Query, Request
+from fastapi import FastAPI, Header, HTTPException, Query, Request
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import HTMLResponse
+from pydantic import BaseModel
 
 app = FastAPI(title="JARVIS Hologram HUD")
 
@@ -29,130 +35,135 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-DASHBOARD_DIR = Path(r"C:\Users\yashw\.gemini\antigravity\scratch\jarvis_dashboard")
+DASHBOARD_DIR = Path(__file__).parent.resolve()
 CONNECTORS_DIR = Path.home() / ".openjarvis" / "connectors"
 GMAIL_FILE = CONNECTORS_DIR / "gmail.json"
 
 
-def get_token() -> str:
-    """Return valid access token with synchronized auto-refresh on 401."""
+# In-memory session store for connected users (email -> app_password)
+USER_SESSIONS: Dict[str, str] = {}
+
+
+class ConnectRequest(BaseModel):
+    email: str
+    app_password: str
+
+
+def clean_header_text(header_val: Optional[str]) -> str:
+    if not header_val:
+        return ""
+    try:
+        decoded_parts = decode_header(header_val)
+        out = []
+        for text, enc in decoded_parts:
+            if isinstance(text, bytes):
+                out.append(text.decode(enc or "utf-8", errors="ignore"))
+            else:
+                out.append(str(text))
+        return "".join(out)
+    except Exception:
+        return str(header_val)
+
+
+def extract_body_snippet(msg: email.message.Message, max_len: int = 150) -> str:
+    snippet = ""
+    try:
+        if msg.is_multipart():
+            for part in msg.walk():
+                ctype = part.get_content_type()
+                disp = str(part.get("Content-Disposition"))
+                if ctype == "text/plain" and "attachment" not in disp:
+                    payload = part.get_payload(decode=True)
+                    if payload:
+                        snippet = payload.decode("utf-8", errors="ignore")
+                        break
+        else:
+            payload = msg.get_payload(decode=True)
+            if payload:
+                snippet = payload.decode("utf-8", errors="ignore")
+    except Exception:
+        snippet = ""
+
+    clean = " ".join(snippet.split())
+    if len(clean) > max_len:
+        return clean[:max_len] + "..."
+    return clean or "(No body content preview)"
+
+
+def fetch_emails_via_imap(user_email: str, app_pwd: str, query: str = "", limit: int = 15) -> List[Dict[str, Any]]:
+    """Connects directly to Gmail IMAP using the user's specific App Password."""
+    pwd_clean = app_pwd.replace(" ", "")
+    try:
+        mail = imaplib.IMAP4_SSL("imap.gmail.com", 993, timeout=12.0)
+        mail.login(user_email, pwd_clean)
+        mail.select("INBOX", readonly=True)
+
+        if query:
+            # Search subject, body, or from
+            # Gmail IMAP supports standard or X-GM-RAW
+            try:
+                status, data = mail.search(None, f'(OR (FROM "{query}") (SUBJECT "{query}"))')
+            except Exception:
+                status, data = mail.search(None, "ALL")
+        else:
+            status, data = mail.search(None, "ALL")
+
+        if status != "OK" or not data or not data[0]:
+            mail.logout()
+            return []
+
+        msg_ids = data[0].split()
+        total_found = len(msg_ids)
+        target_ids = msg_ids[-limit:]
+
+        results = []
+        for mid in reversed(target_ids):
+            res, msg_data = mail.fetch(mid, "(RFC822.HEADER BODY.PEEK[TEXT])")
+            if res != "OK" or not msg_data:
+                continue
+
+            raw_bytes = None
+            for part in msg_data:
+                if isinstance(part, tuple) and part[1]:
+                    raw_bytes = part[1]
+                    break
+
+            if not raw_bytes:
+                continue
+
+            msg = email.message_from_bytes(raw_bytes)
+            subject = clean_header_text(msg.get("Subject", "(No Subject)"))
+            sender = clean_header_text(msg.get("From", "Unknown"))
+            date_str = clean_header_text(msg.get("Date", ""))
+            snippet = extract_body_snippet(msg)
+
+            results.append({
+                "id": mid.decode("utf-8", errors="ignore"),
+                "from": sender,
+                "subject": subject,
+                "date": date_str,
+                "snippet": snippet,
+            })
+
+        mail.logout()
+        return results
+    except Exception as e:
+        return [{"error": f"IMAP connection failed: {str(e)}"}]
+
+
+def get_local_oauth_token() -> str:
+    """Fallback only for local dev session if configured."""
     if not GMAIL_FILE.exists():
         return ""
     try:
         data = json.loads(GMAIL_FILE.read_text(encoding="utf-8"))
-        token = data.get("access_token", "")
-        # Probe validity
-        probe = httpx.get(
-            "https://gmail.googleapis.com/gmail/v1/users/me/profile",
-            headers={"Authorization": f"Bearer {token}"},
-            timeout=3.0,
-        )
-        if probe.status_code == 401:
-            from openjarvis.connectors.oauth import refresh_google_token
-            return refresh_google_token(str(GMAIL_FILE)) or token
-        return token
+        return data.get("access_token", "")
     except Exception:
-        from openjarvis.connectors.oauth import refresh_google_token
-        try:
-            return refresh_google_token(str(GMAIL_FILE)) or ""
-        except Exception:
-            return ""
-
-
-def get_email_address() -> str:
-    token = get_token()
-    if not token:
-        return "yashwanthreddy875@gmail.com"
-    try:
-        resp = httpx.get(
-            "https://gmail.googleapis.com/gmail/v1/users/me/profile",
-            headers={"Authorization": f"Bearer {token}"},
-            timeout=4.0,
-        )
-        if resp.status_code == 200:
-            return resp.json().get("emailAddress", "yashwanthreddy875@gmail.com")
-    except Exception:
-        pass
-    return "yashwanthreddy875@gmail.com"
-
-
-@app.get("/api/telemetry")
-def get_telemetry() -> Dict[str, Any]:
-    cpu = psutil.cpu_percent(interval=None)
-    mem = psutil.virtual_memory().percent
-    email = get_email_address()
-
-    token = get_token()
-    total_messages = "200+"
-    if token:
-        try:
-            r = httpx.get(
-                "https://gmail.googleapis.com/gmail/v1/users/me/profile",
-                headers={"Authorization": f"Bearer {token}"},
-                timeout=4.0
-            )
-            if r.status_code == 200:
-                total_messages = str(r.json().get("messagesTotal", "200+"))
-        except Exception:
-            pass
-
-    return {
-        "host_platform": f"{platform.system()} {platform.machine()}",
-        "engine_version": "v1.0.4 AI Assistant",
-        "cpu_utilization": f"{cpu:.1f}%",
-        "memory_usage": f"{mem:.1f}%",
-        "data_sources": "6 / 27",
-        "total_emails_indexed": total_messages,
-        "user_name": "Yashwanth Reddy",
-        "user_email": email,
-        "timestamp": datetime.now().strftime("%A, %B %d, %Y | %I:%M %p"),
-    }
-
-
-def fetch_gmail_messages(query: str = "", max_results: int = 15) -> List[Dict[str, Any]]:
-    token = get_token()
-    if not token:
-        return []
-
-    headers = {"Authorization": f"Bearer {token}"}
-    params: Dict[str, Any] = {"maxResults": min(max_results, 50)}
-    if query:
-        params["q"] = query
-
-    try:
-        url = "https://gmail.googleapis.com/gmail/v1/users/me/messages"
-        res = httpx.get(url, headers=headers, params=params, timeout=12.0).json()
-        
-        raw_msgs = res.get("messages", [])
-        if not raw_msgs:
-            return []
-
-        results = []
-        for m in raw_msgs:
-            mid = m["id"]
-            detail = httpx.get(
-                f"{url}/{mid}?format=metadata&metadataHeaders=From&metadataHeaders=Subject&metadataHeaders=Date",
-                headers=headers,
-                timeout=6.0,
-            ).json()
-            headers_dict = {
-                h["name"]: h["value"]
-                for h in detail.get("payload", {}).get("headers", [])
-            }
-            results.append({
-                "id": mid,
-                "from": headers_dict.get("From", "Unknown"),
-                "subject": headers_dict.get("Subject", "(No Subject)"),
-                "date": headers_dict.get("Date", ""),
-                "snippet": detail.get("snippet", ""),
-            })
-        return results
-    except Exception as e:
-        return [{"error": str(e)}]
+        return ""
 
 
 def extract_search_terms(raw_query: str) -> str:
-    """Clean natural language wrapper words so the exact search query hits Gmail."""
+    """Clean natural language wrapper words so the exact search query hits mail."""
     q = raw_query.strip()
     stop_phrases = [
         "what are my emails regarding", "what are my emails about", "what are my emails from",
@@ -169,91 +180,137 @@ def extract_search_terms(raw_query: str) -> str:
     lower_q = q.lower()
     for phrase in stop_phrases:
         if phrase in lower_q:
-            # Replace case-insensitively
             idx = lower_q.find(phrase)
             after = q[idx + len(phrase):].strip()
             if after:
                 return after.strip(" ?.!\"'")
     
-    # Strip common filler prefixes
     cleaned = re.sub(r'^(find|search|show|get|check|tell me about|summarize)\s+', '', q, flags=re.IGNORECASE)
     cleaned = re.sub(r'\s+(emails|email|messages|message|mail|mails)$', '', cleaned, flags=re.IGNORECASE)
     return cleaned.strip(" ?.!\"'")
 
 
-@app.get("/api/emails")
-def get_emails(q: str = Query(default=""), limit: int = Query(default=12)) -> List[Dict[str, Any]]:
-    return fetch_gmail_messages(query=q, max_results=limit)
+@app.post("/api/connect")
+def connect_user_mailbox(payload: ConnectRequest):
+    """Authenticate and test connection for any user's email."""
+    email_addr = payload.email.strip().lower()
+    app_pwd = payload.app_password.strip().replace(" ", "")
 
+    if not email_addr or not app_pwd:
+        raise HTTPException(status_code=400, detail="Email and App Password required")
 
-@app.get("/api/digest")
-def get_digest() -> Dict[str, Any]:
-    emails = fetch_gmail_messages(max_results=8)
-    if not emails or "error" in emails[0]:
+    try:
+        mail = imaplib.IMAP4_SSL("imap.gmail.com", 993, timeout=10.0)
+        mail.login(email_addr, app_pwd)
+        status, counts = mail.select("INBOX", readonly=True)
+        total_msgs = counts[0].decode() if counts and counts[0] else "0"
+        mail.logout()
+
+        # Cache session
+        USER_SESSIONS[email_addr] = app_pwd
+
         return {
-            "text": "Sir, all background systems are active. Please refresh inbox stream.",
-            "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+            "status": "success",
+            "email": email_addr,
+            "total_messages": total_msgs,
+            "message": f"Successfully authenticated {email_addr}."
         }
+    except Exception as e:
+        raise HTTPException(
+            status_code=401,
+            detail=f"Authentication failed. Please check your Gmail address and 16-letter App Password. Error: {str(e)}"
+        )
 
-    lines = ["Sir, here is your synchronized briefing:"]
-    lines.append("\n**Key Messages & Correspondence:**")
-    for e in emails[:5]:
-        sender = e.get("from", "").split("<")[0].strip()
-        lines.append(f"• **{sender}**: {e.get('subject')}")
 
-    lines.append("\n**Active Pipeline & Highlights:**")
-    lines.append("• BookMyShow: Avengers: Doomsday tickets confirmed (Sun, 20 Dec 2026)")
-    lines.append("• Freyr Energy Careers: Product development Analyst update")
-    lines.append("• Continuous mailbox monitoring: Standing by for queries")
+@app.get("/api/telemetry")
+def get_telemetry(x_user_email: Optional[str] = Header(default=None)) -> Dict[str, Any]:
+    cpu = psutil.cpu_percent(interval=None)
+    mem = psutil.virtual_memory().percent
+
+    current_user = "Guest"
+    if isinstance(x_user_email, str) and x_user_email.strip():
+        current_user = x_user_email.strip().lower()
+
+    user_display = current_user.split("@")[0].title() if current_user != "Guest" else "Guest User"
+    
+    total_messages = "Standby"
+    if current_user in USER_SESSIONS:
+        total_messages = "Live Ingestion"
 
     return {
-        "text": "\n".join(lines),
-        "generated_at": datetime.now().strftime("%Y-%m-%d %H:%M"),
+        "host_platform": f"{platform.system()} {platform.machine()}",
+        "engine_version": "v1.0.5 Autonomous AI",
+        "cpu_utilization": f"{cpu:.1f}%",
+        "memory_usage": f"{mem:.1f}%",
+        "data_sources": "Universal IMAP / Cloud",
+        "total_emails_indexed": total_messages,
+        "user_name": user_display,
+        "user_email": current_user if current_user != "Guest" else "",
+        "timestamp": datetime.now().strftime("%A, %B %d, %Y | %I:%M %p"),
     }
+
+
+@app.get("/api/emails")
+def get_emails(
+    q: str = Query(default=""),
+    limit: int = Query(default=12),
+    x_user_email: Optional[str] = Header(None),
+    x_app_password: Optional[str] = Header(None),
+) -> List[Dict[str, Any]]:
+    # 1. Check if user credentials sent in header or cached
+    email_addr = (x_user_email or "").strip().lower()
+    app_pwd = (x_app_password or "").strip() or USER_SESSIONS.get(email_addr, "")
+
+    if email_addr and app_pwd:
+        return fetch_emails_via_imap(email_addr, app_pwd, query=q, limit=limit)
+
+    return []
 
 
 @app.post("/api/ask")
 async def ask_jarvis(request: Request) -> Dict[str, Any]:
     body = await request.json()
     query = body.get("query", "").strip()
+    user_email = body.get("email", "").strip().lower()
+    app_pwd = body.get("app_password", "").strip() or USER_SESSIONS.get(user_email, "")
+
     if not query:
         return {"response": "Please specify a query, Sir."}
 
-    q_lower = query.lower()
+    if not user_email or not app_pwd:
+        return {
+            "response": (
+                "Sir, no mailbox credentials detected for this session. "
+                "Please click **'Set Up Gmail Access'** above to connect your mailbox with your App Password."
+            )
+        }
 
-    # Schedule / Agenda queries
-    if any(k in q_lower for k in ["schedule", "calendar", "agenda", "meeting", "events", "work schedule"]):
-        events = fetch_gmail_messages(query="BookMyShow OR interview OR schedule OR appointment OR application", max_results=5)
-        reply = ["**Your Detected Work Schedule & Planned Events, Sir:**\n"]
-        for ev in events:
-            reply.append(f"• **{ev.get('subject')}**\n  _Date: {ev.get('date')}_\n  _{ev.get('snippet')[:120]}..._\n")
-        return {"response": "\n".join(reply)}
-
-    # Morning briefing / Digest
-    if any(k in q_lower for k in ["briefing", "morning", "digest"]):
-        d = get_digest()
-        return {"response": d.get("text", "")}
-
-    # UNIVERSAL SEARCH: Extract clean search terms and directly search whole Gmail
     clean_search = extract_search_terms(query)
     search_target = clean_search if clean_search else query
 
-    matched_emails = fetch_gmail_messages(query=search_target, max_results=6)
-    
-    # If no results on stripped term, retry on raw query
-    if (not matched_emails or "error" in matched_emails[0]) and clean_search != query:
-        matched_emails = fetch_gmail_messages(query=query, max_results=6)
+    # Fetch live emails for THIS user
+    matched_emails = fetch_emails_via_imap(user_email, app_pwd, query=search_target, limit=6)
+    if not matched_emails or (len(matched_emails) == 1 and "error" in matched_emails[0]):
+        # Retry with ALL to perform client-side substring matching across recent 20
+        all_recent = fetch_emails_via_imap(user_email, app_pwd, query="", limit=20)
+        target_lower = search_target.lower()
+        matched_emails = [
+            m for m in all_recent
+            if target_lower in m.get("subject", "").lower()
+            or target_lower in m.get("from", "").lower()
+            or target_lower in m.get("snippet", "").lower()
+        ]
 
-    if not matched_emails or "error" in matched_emails[0]:
+    if not matched_emails:
         return {
             "response": (
-                f"Sir, I searched your entire mailbox archive for '{search_target}', "
-                f"but found no corresponding emails. You can refine your search with sender name or subject keywords."
+                f"Sir, I searched your mailbox ({user_email}) for '{search_target}', "
+                f"but found no corresponding emails. You can try searching by sender name or keyword."
             )
         }
 
     res_lines = [f"**Archive Search Complete — Records for '{search_target}':**\n"]
-    for m in matched_emails:
+    for m in matched_emails[:5]:
         sender = m.get("from", "").split("<")[0].strip()
         res_lines.append(
             f"• **{m.get('subject')}**\n"
@@ -266,6 +323,8 @@ async def ask_jarvis(request: Request) -> Dict[str, Any]:
 @app.get("/", response_class=HTMLResponse)
 def serve_dashboard():
     html_path = DASHBOARD_DIR / "templates" / "index.html"
+    if not html_path.exists():
+        html_path = DASHBOARD_DIR / "index.html"
     return html_path.read_text(encoding="utf-8")
 
 
