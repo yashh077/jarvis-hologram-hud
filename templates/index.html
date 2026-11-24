@@ -23,6 +23,7 @@
       --text-dim: #608fa8;
       --red: #ef4444;
       --gold: #f59e0b;
+      --purple: #a855f7;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; user-select: none; }
@@ -47,18 +48,20 @@
       display: flex;
       justify-content: space-between;
       align-items: center;
-      padding: 12px 28px;
+      padding: 10px 24px;
       border-bottom: 1px solid var(--panel-border);
       background: rgba(3, 12, 28, 0.94);
       backdrop-filter: blur(10px);
       z-index: 10;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
     .brand-left { display: flex; align-items: center; gap: 14px; }
 
     .arc-reactor-logo {
-      width: 44px;
-      height: 44px;
+      width: 42px;
+      height: 42px;
       border-radius: 50%;
       border: 2px solid var(--cyan);
       box-shadow: var(--cyan-glow);
@@ -77,8 +80,8 @@
     .arc-reactor-logo::before {
       content: '';
       position: absolute;
-      width: 18px;
-      height: 18px;
+      width: 16px;
+      height: 16px;
       border-radius: 50%;
       background: radial-gradient(circle, #fff, var(--cyan));
       box-shadow: 0 0 10px #fff;
@@ -86,30 +89,29 @@
 
     .brand-title h1 {
       font-family: 'Orbitron', sans-serif;
-      font-size: 1.35rem;
+      font-size: 1.3rem;
       letter-spacing: 3px;
       color: #fff;
       text-shadow: 0 0 10px rgba(0, 229, 255, 0.7);
     }
 
     .brand-title p {
-      font-size: 0.68rem;
+      font-size: 0.65rem;
       letter-spacing: 2px;
       color: var(--cyan-bright);
     }
 
-    .header-actions { display: flex; align-items: center; gap: 10px; }
+    .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
 
     .user-pill {
       background: rgba(0, 229, 255, 0.08);
       border: 1px solid rgba(0, 229, 255, 0.35);
-      padding: 6px 14px;
+      padding: 5px 12px;
       border-radius: 20px;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       display: flex;
       align-items: center;
       gap: 8px;
-      letter-spacing: 0.5px;
     }
 
     .pulse-dot {
@@ -132,22 +134,27 @@
       background: rgba(0, 229, 255, 0.1);
       border: 1px solid var(--cyan);
       color: var(--cyan);
-      padding: 6px 14px;
+      padding: 5px 12px;
       border-radius: 6px;
       font-family: 'Orbitron', sans-serif;
-      font-size: 0.72rem;
+      font-size: 0.7rem;
       letter-spacing: 1px;
       cursor: pointer;
       transition: all 0.2s ease;
       display: inline-flex;
       align-items: center;
-      gap: 6px;
+      gap: 5px;
     }
 
     .hud-btn:hover {
       background: var(--cyan);
       color: #030814;
       box-shadow: 0 0 15px var(--cyan);
+    }
+
+    .hud-btn.active-glow {
+      background: rgba(0, 229, 255, 0.25);
+      box-shadow: 0 0 10px var(--cyan);
     }
 
     .link-gmail-btn {
@@ -168,7 +175,6 @@
       background: rgba(239, 68, 68, 0.15) !important;
       border-color: #ef4444 !important;
       color: #fca5a5 !important;
-      transition: all 0.2s ease;
     }
     .stop-btn:hover {
       background: #ef4444 !important;
@@ -209,7 +215,7 @@
       align-items: center;
       border-bottom: 1px solid rgba(0, 229, 255, 0.2);
       padding-bottom: 8px;
-      margin-bottom: 12px;
+      margin-bottom: 10px;
     }
 
     .panel-header h2 {
@@ -220,6 +226,35 @@
       display: flex;
       align-items: center;
       gap: 6px;
+    }
+
+    /* FILTER TABS & SEARCH */
+    .filter-tabs {
+      display: flex;
+      gap: 6px;
+      margin-bottom: 8px;
+      flex-wrap: wrap;
+    }
+
+    .filter-pill {
+      background: rgba(0, 229, 255, 0.05);
+      border: 1px solid rgba(0, 229, 255, 0.2);
+      color: var(--text-dim);
+      padding: 3px 8px;
+      border-radius: 12px;
+      font-size: 0.72rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-pill:hover, .filter-pill.active {
+      background: rgba(0, 229, 255, 0.2);
+      border-color: var(--cyan);
+      color: #fff;
+    }
+    .filter-pill.priority-tab.active {
+      background: rgba(245, 158, 11, 0.25);
+      border-color: var(--gold);
+      color: var(--gold);
     }
 
     .inbox-filter-bar {
@@ -260,6 +295,7 @@
       font-size: 0.85rem;
       transition: all 0.2s;
       cursor: pointer;
+      position: relative;
     }
 
     .inbox-card:hover {
@@ -268,9 +304,16 @@
       box-shadow: 0 0 10px rgba(0, 229, 255, 0.15);
     }
 
+    .inbox-card.vip-card {
+      border-color: var(--gold);
+      background: rgba(245, 158, 11, 0.07);
+      box-shadow: inset 0 0 10px rgba(245, 158, 11, 0.12);
+    }
+
     .card-top {
       display: flex;
       justify-content: space-between;
+      align-items: center;
       color: var(--cyan);
       font-weight: 700;
       font-size: 0.82rem;
@@ -299,9 +342,23 @@
 
     .card-actions {
       display: flex;
-      justify-content: flex-end;
+      justify-content: space-between;
+      align-items: center;
       gap: 6px;
       margin-top: 6px;
+    }
+
+    .star-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-dim);
+      font-size: 0.95rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .star-btn:hover, .star-btn.starred {
+      color: var(--gold);
+      text-shadow: 0 0 8px var(--gold);
     }
 
     .mini-btn {
@@ -325,13 +382,13 @@
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      min-height: 190px;
+      min-height: 185px;
       position: relative;
     }
 
     .hologram-orb {
-      width: 125px;
-      height: 125px;
+      width: 120px;
+      height: 120px;
       border-radius: 50%;
       background: radial-gradient(circle at 50% 50%, #fff 0%, var(--cyan) 40%, rgba(0, 160, 255, 0.35) 70%, transparent 100%);
       box-shadow: 0 0 30px var(--cyan), 0 0 60px rgba(0, 229, 255, 0.5), inset 0 0 20px #fff;
@@ -370,7 +427,7 @@
     @keyframes spinReverse { 100% { transform: rotate(-360deg); } }
 
     .orb-label {
-      margin-top: 14px;
+      margin-top: 12px;
       font-family: 'Orbitron', sans-serif;
       font-size: 0.78rem;
       letter-spacing: 2px;
@@ -394,16 +451,16 @@
     .quick-actions {
       display: flex;
       flex-wrap: wrap;
-      gap: 8px;
+      gap: 7px;
     }
 
     .pill-btn {
       background: rgba(0, 229, 255, 0.06);
       border: 1px solid rgba(0, 229, 255, 0.25);
       color: var(--text-main);
-      padding: 6px 12px;
+      padding: 5px 11px;
       border-radius: 16px;
-      font-size: 0.78rem;
+      font-size: 0.76rem;
       font-family: 'Rajdhani', sans-serif;
       cursor: pointer;
       transition: all 0.2s;
@@ -453,6 +510,7 @@
     .badge-high { background: rgba(245, 158, 11, 0.2); color: #f59e0b; border: 1px solid #f59e0b; }
     .badge-medium { background: rgba(0, 229, 255, 0.2); color: #00e5ff; border: 1px solid #00e5ff; }
     .badge-info { background: rgba(56, 249, 215, 0.2); color: #38f9d7; border: 1px solid #38f9d7; }
+    .badge-vip { background: rgba(245, 158, 11, 0.2); color: var(--gold); border: 1px solid var(--gold); }
 
     .input-bar {
       display: flex;
@@ -481,7 +539,7 @@
       display: flex;
       justify-content: space-between;
       font-size: 0.85rem;
-      padding: 6px 0;
+      padding: 5px 0;
       border-bottom: 1px solid rgba(0, 229, 255, 0.1);
     }
     .telemetry-row span:first-child { color: var(--text-dim); }
@@ -502,7 +560,7 @@
       border: 1px solid rgba(0, 229, 255, 0.15);
       border-left: 3px solid var(--cyan);
       border-radius: 6px;
-      padding: 10px;
+      padding: 9px;
       font-size: 0.82rem;
       transition: all 0.2s;
     }
@@ -515,12 +573,108 @@
       border-left-color: var(--cyan-bright);
     }
 
-    /* MODAL */
+    .schedule-item.urgent-event {
+      border-left-color: var(--red);
+      background: rgba(239, 68, 68, 0.06);
+    }
+
+    /* KEYWORDS & CHIPS */
+    .keyword-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 5px;
+      background: rgba(0, 229, 255, 0.1);
+      border: 1px solid var(--cyan);
+      color: var(--cyan);
+      border-radius: 14px;
+      padding: 3px 10px;
+      font-size: 0.75rem;
+      margin: 3px;
+    }
+    .keyword-remove {
+      color: var(--red);
+      cursor: pointer;
+      font-weight: 700;
+    }
+    .keyword-remove:hover { color: #fff; }
+
+    /* CALENDAR MODAL & MATRIX */
+    .cal-matrix {
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      gap: 4px;
+      margin: 12px 0;
+      text-align: center;
+    }
+    .cal-head-day {
+      font-size: 0.68rem;
+      color: var(--cyan);
+      font-family: 'Orbitron', monospace;
+      padding: 4px 0;
+    }
+    .cal-day-cell {
+      background: rgba(0, 229, 255, 0.03);
+      border: 1px solid rgba(0, 229, 255, 0.12);
+      border-radius: 4px;
+      padding: 8px 4px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      position: relative;
+      min-height: 44px;
+      transition: all 0.2s;
+    }
+    .cal-day-cell:hover {
+      border-color: var(--cyan);
+      background: rgba(0, 229, 255, 0.12);
+    }
+    .cal-day-cell.other-month {
+      color: var(--text-dim);
+      opacity: 0.35;
+    }
+    .cal-day-cell.today {
+      border-color: var(--cyan-bright);
+      background: rgba(56, 249, 215, 0.15);
+      font-weight: 700;
+    }
+    .cal-day-cell.has-events::after {
+      content: '';
+      position: absolute;
+      bottom: 4px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--gold);
+      box-shadow: 0 0 6px var(--gold);
+    }
+    .cal-day-cell.selected {
+      border-color: var(--gold);
+      background: rgba(245, 158, 11, 0.2);
+    }
+
+    /* ALERT MODAL WINDOW (EMERGENCY HUD) */
+    .alert-window {
+      background: #080310;
+      border: 2px solid var(--red);
+      border-radius: 14px;
+      padding: 24px;
+      max-width: 480px;
+      width: 90%;
+      box-shadow: 0 0 50px rgba(239, 68, 68, 0.5);
+      animation: alertPulse 1.2s infinite alternate;
+    }
+    @keyframes alertPulse {
+      0% { box-shadow: 0 0 25px rgba(239, 68, 68, 0.4); }
+      100% { box-shadow: 0 0 60px rgba(239, 68, 68, 0.85); }
+    }
+
+    /* GENERIC MODALS */
     .modal-overlay {
       display: none;
       position: fixed;
       inset: 0;
-      background: rgba(0, 0, 0, 0.78);
+      background: rgba(0, 0, 0, 0.82);
       backdrop-filter: blur(6px);
       z-index: 1000;
       align-items: center;
@@ -532,9 +686,11 @@
       background: #040e1e;
       border: 1px solid var(--cyan);
       border-radius: 14px;
-      padding: 28px;
-      max-width: 500px;
+      padding: 24px 28px;
+      max-width: 520px;
       width: 90%;
+      max-height: 85vh;
+      overflow-y: auto;
       box-shadow: 0 0 50px rgba(0, 229, 255, 0.25);
       animation: modal-in 0.25s ease-out;
     }
@@ -547,14 +703,14 @@
       letter-spacing: 2px;
       margin-bottom: 8px;
     }
-    .modal-sub { color: var(--text-dim); font-size: 0.85rem; margin-bottom: 20px; line-height: 1.5; }
+    .modal-sub { color: var(--text-dim); font-size: 0.82rem; margin-bottom: 16px; line-height: 1.5; }
 
     .modal-input {
       width: 100%;
       background: rgba(0, 229, 255, 0.05);
       border: 1px solid rgba(0, 229, 255, 0.3);
       border-radius: 6px;
-      padding: 10px 14px;
+      padding: 9px 12px;
       color: #fff;
       font-family: 'Rajdhani', sans-serif;
       font-size: 0.95rem;
@@ -595,7 +751,7 @@
       <div class="arc-reactor-logo"></div>
       <div class="brand-title">
         <h1>J.A.R.V.I.S.</h1>
-        <p>OPENJARVIS AI ASSISTANT // AUTONOMOUS MAIL &amp; SCHEDULE HUD</p>
+        <p>OPENJARVIS AI ASSISTANT // AUTONOMOUS MAIL, CALENDAR &amp; ALERT HUD</p>
       </div>
     </div>
 
@@ -604,6 +760,15 @@
         <div class="pulse-dot disconnected" id="status-dot"></div>
         <span id="user-display">Guest User | No Account Linked</span>
       </div>
+      <button class="hud-btn" onclick="openKeywordsModal()" title="Customize VIP keywords that mark emails as important">
+        🏷️ VIP Keywords
+      </button>
+      <button class="hud-btn" onclick="openCalendarModal()" title="View full calendar and appointments">
+        📅 Calendar HUD
+      </button>
+      <button class="hud-btn" id="notif-btn" onclick="toggleNotificationSetting()" title="Live Meeting & Event Alerts">
+        🔔 Alerts: Active
+      </button>
       <button class="hud-btn link-gmail-btn" id="btn-link" onclick="initiateGoogleLogin()">
         🔗 Link Gmail Account
       </button>
@@ -623,6 +788,13 @@
       <div class="panel-header">
         <h2>📥 Mail Archive &amp; Inbox</h2>
         <span style="font-size:0.75rem; color:var(--text-dim)" id="mail-connection-label">● Standby</span>
+      </div>
+
+      <!-- FILTER TABS -->
+      <div class="filter-tabs">
+        <div class="filter-pill active" id="tab-all" onclick="setInboxFilter('all')">📥 All Mail (<span id="count-all">0</span>)</div>
+        <div class="filter-pill priority-tab" id="tab-priority" onclick="setInboxFilter('priority')">⭐ VIP / Priority (<span id="count-priority">0</span>)</div>
+        <div class="filter-pill" onclick="openKeywordsModal()">⚙️ Rules</div>
       </div>
 
       <div class="inbox-filter-bar">
@@ -660,19 +832,21 @@
       <div class="quick-actions">
         <button class="pill-btn" onclick="quickAsk('Morning Briefing')">🌅 Morning Briefing</button>
         <button class="pill-btn" onclick="quickAsk('Summarize my latest emails')">🤖 Summarize Latest</button>
-        <button class="pill-btn" onclick="quickAsk('What is my work schedule and upcoming action items?')">📅 Work Schedule</button>
+        <button class="pill-btn" onclick="setInboxFilter('priority')">⭐ Priority Emails</button>
+        <button class="pill-btn" onclick="openCalendarModal()">📅 Calendar Matrix</button>
         <button class="pill-btn" onclick="openScheduleModal()">➕ Schedule Event</button>
+        <button class="pill-btn" onclick="triggerTestAlert()">🔔 Test Alert</button>
         <button class="pill-btn" onclick="quickAsk('Run system diagnostics')">🛡️ Diagnostics</button>
       </div>
 
       <div class="terminal-output" id="jarvis-output">
         <b>• Welcome to J.A.R.V.I.S. Mail Intelligence HUD:</b><br>
-        Connect your Gmail account using the button on the top right to start exploring your personal emails, schedule scanner, and AI-powered voice briefings.<br>
-        <b>• Universal &amp; Secure:</b> No server stores your credentials. Direct browser-to-Google OAuth encryption.
+        Connect your Gmail account using the button on the top right to start exploring your personal emails, VIP keyword tagging, calendar matrix, and live meeting alert notifications.<br>
+        <b>• Universal &amp; Secure:</b> Direct browser-to-Google OAuth encryption. Tokens reside strictly in your private session.
       </div>
 
       <div class="input-bar">
-        <input type="text" id="query-input" placeholder="Ask Jarvis: 'summarize emails', 'schedule meeting tomorrow at 3pm'..." onkeydown="if(event.key==='Enter') sendQuery()">
+        <input type="text" id="query-input" placeholder="Ask Jarvis: 'summarize emails', 'schedule meeting tomorrow at 3pm', 'show priority emails'..." onkeydown="if(event.key==='Enter') sendQuery()">
         <button class="hud-btn" onclick="sendQuery()">Send</button>
         <button class="hud-btn stop-btn" id="stop-speaking-btn" onclick="stopSpeechAndSummarizing()">⏹ Stop</button>
       </div>
@@ -687,7 +861,7 @@
 
       <div class="telemetry-row">
         <span>Host Engine:</span>
-        <span>OpenJarvis Core</span>
+        <span>OpenJarvis Core v2.4</span>
       </div>
       <div class="telemetry-row">
         <span>Active User:</span>
@@ -701,16 +875,23 @@
         <span>Messages Indexed:</span>
         <span id="tel-emails">0 Messages</span>
       </div>
+      <div class="telemetry-row">
+        <span>Active Alerts:</span>
+        <span id="tel-alerts" style="color:var(--cyan-bright)">Monitoring Live</span>
+      </div>
 
       <div class="panel-header" style="margin-top: 14px;">
         <h2>📅 Work Schedule &amp; Agenda</h2>
-        <button class="mini-btn" onclick="openScheduleModal()">+ Event</button>
+        <div style="display:flex; gap:4px;">
+          <button class="mini-btn" onclick="openScheduleModal()">+ Event</button>
+          <button class="mini-btn" onclick="openCalendarModal()">📆 View</button>
+        </div>
       </div>
 
       <div class="schedule-box" id="schedule-list">
         <div class="schedule-item">
           <b>Schedule Scanner Standing By</b><br>
-          <span style="color:var(--text-dim)">Link your Gmail to detect meetings, tickets, flights, and deadlines automatically.</span>
+          <span style="color:var(--text-dim)">Link your Gmail or click "+ Event" to add meetings, appointments &amp; interviews.</span>
         </div>
       </div>
     </div>
@@ -722,20 +903,134 @@
     <span>STATUS: READY // UNIVERSAL CLIENT MODE ACTIVE</span>
   </footer>
 
-  <!-- SCHEDULE EVENT MODAL -->
+  <!-- MODAL 1: VIP KEYWORD WATCHLIST MODAL -->
+  <div class="modal-overlay" id="keywordsModal">
+    <div class="modal-window">
+      <div class="modal-title">⚙️ VIP KEYWORD WATCHLIST &amp; AUTO-PRIORITIZER</div>
+      <div class="modal-sub">
+        Any email containing these keywords in its <b>Sender Name, Subject, Context, or Reference ID</b> will automatically be tagged with a glowing ★ VIP badge and highlighted.
+      </div>
+
+      <div style="display:flex; gap:6px; margin-bottom:12px;">
+        <input class="modal-input" id="newKeywordInput" type="text" placeholder="Enter keyword: (e.g. 'Amazon', 'Urgent', 'Contract', 'Google', 'Project')" style="margin-bottom:0;" onkeydown="if(event.key==='Enter') addKeywordFromInput()">
+        <button class="hud-btn link-gmail-btn" onclick="addKeywordFromInput()">Add Rule</button>
+      </div>
+
+      <div style="font-size:0.75rem; color:var(--text-dim); margin-bottom:6px;">Quick Presets (Click to add):</div>
+      <div style="display:flex; flex-wrap:wrap; gap:5px; margin-bottom:14px;">
+        <button class="mini-btn" onclick="addPresetKeyword('Interview')">+ Interview</button>
+        <button class="mini-btn" onclick="addPresetKeyword('Urgent')">+ Urgent</button>
+        <button class="mini-btn" onclick="addPresetKeyword('Invoice')">+ Invoice</button>
+        <button class="mini-btn" onclick="addPresetKeyword('Offer')">+ Offer Letter</button>
+        <button class="mini-btn" onclick="addPresetKeyword('BSE')">+ BSE Alerts</button>
+        <button class="mini-btn" onclick="addPresetKeyword('Meeting')">+ Meeting</button>
+        <button class="mini-btn" onclick="addPresetKeyword('Client')">+ Client</button>
+      </div>
+
+      <div style="font-size:0.8rem; color:var(--cyan); margin-bottom:6px; font-weight:700;">Active Priority Keywords:</div>
+      <div id="keywordsChipContainer" style="background:rgba(0,229,255,0.03); border:1px solid rgba(0,229,255,0.15); border-radius:6px; padding:10px; min-height:60px;">
+        <!-- Chips inserted here -->
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+        <button class="hud-btn link-gmail-btn" onclick="closeKeywordsModal()">Done &amp; Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 2: INTERACTIVE CALENDAR & AGENDA MATRIX -->
+  <div class="modal-overlay" id="calendarModal">
+    <div class="modal-window" style="max-width:620px;">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+        <div class="modal-title" style="margin-bottom:0;">📅 TACTICAL CALENDAR &amp; AGENDA MATRIX</div>
+        <button class="mini-btn" onclick="openScheduleModal()">+ New Event</button>
+      </div>
+      <div class="modal-sub">Comprehensive overview of scheduled meetings, interviews, appointments, and actionable deadlines:</div>
+
+      <!-- Month Navigation -->
+      <div style="display:flex; justify-content:space-between; align-items:center; background:rgba(0,229,255,0.06); padding:8px 12px; border-radius:6px; border:1px solid rgba(0,229,255,0.2);">
+        <button class="mini-btn" onclick="changeCalendarMonth(-1)">◀ Prev</button>
+        <b style="font-family:'Orbitron', monospace; color:var(--cyan); font-size:0.95rem;" id="calMonthTitle">November 2026</b>
+        <div>
+          <button class="mini-btn" onclick="resetCalendarToToday()">Today</button>
+          <button class="mini-btn" onclick="changeCalendarMonth(1)">Next ▶</button>
+        </div>
+      </div>
+
+      <!-- 7-Day Matrix Grid -->
+      <div class="cal-matrix" id="calendarGrid">
+        <!-- Rendered dynamically -->
+      </div>
+
+      <!-- Selected Day Agenda -->
+      <div style="border-top:1px solid rgba(0,229,255,0.2); padding-top:12px; margin-top:8px;">
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:8px;">
+          <b style="color:var(--cyan-bright); font-size:0.85rem;" id="calAgendaTitle">Agenda for Today:</b>
+          <span style="font-size:0.75rem; color:var(--text-dim);" id="calEventCountBadge">0 events</span>
+        </div>
+        <div id="calAgendaList" style="max-height:180px; overflow-y:auto; display:flex; flex-direction:column; gap:6px;">
+          <!-- Day events listed here -->
+        </div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:16px;">
+        <button class="hud-btn" onclick="closeCalendarModal()">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 3: SCHEDULE NEW EVENT MODAL -->
   <div class="modal-overlay" id="scheduleModal">
     <div class="modal-window">
-      <div class="modal-title">📅 SCHEDULE NEW EVENT</div>
-      <div class="modal-sub">Add an action item or event to your J.A.R.V.I.S. agenda and Google Calendar:</div>
+      <div class="modal-title">📅 SCHEDULE NEW EVENT / APPOINTMENT</div>
+      <div class="modal-sub">Add an upcoming meeting, interview, or appointment with live alert notifications and Google Calendar sync:</div>
 
-      <input class="modal-input" id="eventTitle" type="text" placeholder="Event Title (e.g. Client Review Meeting)">
-      <input class="modal-input" id="eventDate" type="date">
-      <input class="modal-input" id="eventTime" type="time">
-      <input class="modal-input" id="eventDesc" type="text" placeholder="Description or Notes (Optional)">
+      <input class="modal-input" id="eventTitle" type="text" placeholder="Event Title (e.g. Technical Interview with Google, Client Review)">
+      <div style="display:grid; grid-template-columns:1fr 1fr; gap:8px;">
+        <input class="modal-input" id="eventDate" type="date">
+        <input class="modal-input" id="eventTime" type="time">
+      </div>
+      <select class="modal-input" id="eventCategory" style="background:#040e1e; color:#fff;">
+        <option value="Meeting">🤝 Meeting / Conference Call</option>
+        <option value="Interview">👔 Job Interview / HR Round</option>
+        <option value="Appointment">📅 Appointment / Doctor / Review</option>
+        <option value="Deadline">⚠️ Critical Deadline / Submission</option>
+        <option value="Travel">✈️ Travel / Flight / Reservation</option>
+      </select>
+      <input class="modal-input" id="eventDesc" type="text" placeholder="Location, Google Meet / Zoom link, or Notes (Optional)">
 
       <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
         <button class="hud-btn" onclick="closeScheduleModal()">Cancel</button>
         <button class="hud-btn link-gmail-btn" onclick="createManualEvent()">Add to Agenda &amp; Calendar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL 4: EMERGENCY LIVE ALERT NOTIFICATION MODAL -->
+  <div class="modal-overlay" id="alertModal">
+    <div class="alert-window">
+      <div style="display:flex; align-items:center; gap:10px; margin-bottom:10px;">
+        <div style="font-size:1.8rem; animation:pulse 0.8s infinite;">⚠️</div>
+        <div>
+          <div style="font-family:'Orbitron', monospace; color:var(--red); font-size:1rem; font-weight:700; letter-spacing:1px;">
+            TACTICAL EVENT ALERT // LIVE
+          </div>
+          <div style="font-size:0.75rem; color:#fca5a5;">JARVIS Autonomous Schedule Monitor</div>
+        </div>
+      </div>
+
+      <div style="background:rgba(239,68,68,0.1); border:1px solid var(--red); border-radius:6px; padding:12px; margin:12px 0;">
+        <b style="color:#fff; font-size:1.05rem;" id="alertEventTitle">Upcoming Meeting Title</b><br>
+        <div style="margin-top:6px; font-size:0.85rem; color:#fecaca;">
+          ⏰ <b>Scheduled Time:</b> <span id="alertEventTime">10:00 AM</span> &nbsp;·&nbsp; 
+          <span class="badge badge-critical" id="alertEventCountdown">COMMENCING NOW</span>
+        </div>
+        <div style="margin-top:4px; font-size:0.8rem; color:#fed7aa;" id="alertEventNotes"></div>
+      </div>
+
+      <div style="display:flex; justify-content:flex-end; gap:8px; margin-top:14px;">
+        <button class="hud-btn" style="border-color:#fca5a5; color:#fff;" onclick="dismissAlertModal()">Dismiss Alert</button>
+        <button class="hud-btn link-gmail-btn" id="alertJoinBtn" onclick="openAlertCalendarLink()">Open Calendar / Link</button>
       </div>
     </div>
   </div>
@@ -752,8 +1047,21 @@
     let userAccessToken = sessionStorage.getItem('jarvis_access_token') || '';
     let userEmail = sessionStorage.getItem('jarvis_user_email') || '';
     let voiceEnabled = true;
+    let notificationsEnabled = true;
     let loadedEmails = [];
     let customEvents = JSON.parse(sessionStorage.getItem('jarvis_custom_events') || '[]');
+    let starredEmailIds = JSON.parse(sessionStorage.getItem('jarvis_starred_emails') || '[]');
+    let currentFilter = 'all'; // 'all' or 'priority'
+    let triggeredAlertIds = new Set();
+    let currentAlertEvent = null;
+
+    // Priority Keywords Watchlist
+    const defaultKeywords = ['interview', 'urgent', 'bse', 'offer', 'invoice', 'meeting', 'appointment', 'deadline', 'payment'];
+    let priorityKeywords = JSON.parse(sessionStorage.getItem('jarvis_priority_keywords') || JSON.stringify(defaultKeywords));
+
+    // Calendar state
+    let calDisplayDate = new Date();
+    let calSelectedDayStr = new Date().toISOString().split('T')[0];
 
     function escapeHtml(str) {
       if (!str) return '';
@@ -782,10 +1090,19 @@
         }
       }, 300);
 
+      renderKeywordChips();
+      renderCustomEvents();
+
+      // Request Web Notifications permission on user gesture
+      if ('Notification' in window && Notification.permission === 'default') {
+        Notification.requestPermission();
+      }
+
+      // Start the 15-second background event monitor
+      setInterval(checkUpcomingAlerts, 15000);
+
       if (userAccessToken) {
         onAuthSuccess(userAccessToken);
-      } else {
-        renderCustomEvents();
       }
     });
 
@@ -836,7 +1153,7 @@
       document.getElementById('logout-btn').style.display = 'inline-flex';
 
       loadEmails();
-      speakText("Access granted, Sir. All inbox and schedule channels are now live.");
+      speakText("Access granted, Sir. All inbox, priority tagging, and live schedule channels are active.");
     }
 
     function unlinkAccount() {
@@ -865,7 +1182,106 @@
           <span style="font-size:0.82rem;">Click <b>"Link Gmail Account"</b> to connect your inbox.</span>
         </div>`;
       renderCustomEvents();
+      updateFilterCounts();
       showTerminalOutput('<b>System:</b> Mail account disconnected.');
+    }
+
+    // ============================================================
+    // PRIORITY KEYWORDS MANAGEMENT
+    // ============================================================
+    function openKeywordsModal() {
+      renderKeywordChips();
+      document.getElementById('keywordsModal').classList.add('open');
+    }
+
+    function closeKeywordsModal() {
+      document.getElementById('keywordsModal').classList.remove('open');
+      renderInboxFeed();
+      updateFilterCounts();
+    }
+
+    function renderKeywordChips() {
+      const container = document.getElementById('keywordsChipContainer');
+      if (!container) return;
+      if (priorityKeywords.length === 0) {
+        container.innerHTML = '<span style="color:var(--text-dim); font-size:0.75rem;">No priority keywords active. Add keywords above!</span>';
+        return;
+      }
+      container.innerHTML = priorityKeywords.map(kw => `
+        <span class="keyword-chip">
+          ★ ${escapeHtml(kw)}
+          <span class="keyword-remove" onclick="removePriorityKeyword('${escapeHtml(kw)}')">✕</span>
+        </span>
+      `).join('');
+    }
+
+    function addPriorityKeyword(kw) {
+      const clean = kw.trim().toLowerCase();
+      if (!clean) return;
+      if (!priorityKeywords.includes(clean)) {
+        priorityKeywords.push(clean);
+        sessionStorage.setItem('jarvis_priority_keywords', JSON.stringify(priorityKeywords));
+        renderKeywordChips();
+        renderInboxFeed();
+        updateFilterCounts();
+        speakText(`Priority keyword ${clean} added to watchlist.`);
+      }
+    }
+
+    function addKeywordFromInput() {
+      const input = document.getElementById('newKeywordInput');
+      const val = input.value.trim();
+      if (val) {
+        addPriorityKeyword(val);
+        input.value = '';
+      }
+    }
+
+    function addPresetKeyword(kw) {
+      addPriorityKeyword(kw);
+    }
+
+    function removePriorityKeyword(kw) {
+      priorityKeywords = priorityKeywords.filter(k => k !== kw.toLowerCase());
+      sessionStorage.setItem('jarvis_priority_keywords', JSON.stringify(priorityKeywords));
+      renderKeywordChips();
+      renderInboxFeed();
+      updateFilterCounts();
+    }
+
+    function isEmailPriority(email) {
+      if (starredEmailIds.includes(email.id)) return { isMatch: true, matchedKeyword: 'Starred' };
+      const haystack = `${email.from || ''} ${email.subject || ''} ${email.snippet || ''}`.toLowerCase();
+      for (const kw of priorityKeywords) {
+        if (haystack.includes(kw)) {
+          return { isMatch: true, matchedKeyword: kw };
+        }
+      }
+      return { isMatch: false, matchedKeyword: '' };
+    }
+
+    function toggleStarEmail(id) {
+      if (starredEmailIds.includes(id)) {
+        starredEmailIds = starredEmailIds.filter(i => i !== id);
+      } else {
+        starredEmailIds.push(id);
+      }
+      sessionStorage.setItem('jarvis_starred_emails', JSON.stringify(starredEmailIds));
+      renderInboxFeed();
+      updateFilterCounts();
+    }
+
+    function setInboxFilter(type) {
+      currentFilter = type;
+      document.getElementById('tab-all').classList.toggle('active', type === 'all');
+      document.getElementById('tab-priority').classList.toggle('active', type === 'priority');
+      renderInboxFeed();
+    }
+
+    function updateFilterCounts() {
+      document.getElementById('count-all').innerText = loadedEmails.length;
+      const prioCount = loadedEmails.filter(e => isEmailPriority(e).isMatch).length;
+      document.getElementById('count-priority').innerText = prioCount;
     }
 
     // ============================================================
@@ -896,6 +1312,7 @@
         if (rawMsgs.length === 0) {
           container.innerHTML = `<div style="text-align:center; padding:25px; color:var(--text-dim)">No emails found matching query.</div>`;
           document.getElementById('tel-emails').innerText = '0 Messages';
+          updateFilterCounts();
           return;
         }
 
@@ -919,20 +1336,8 @@
         loadedEmails = await Promise.all(emailPromises);
         document.getElementById('tel-emails').innerText = `${loadedEmails.length} Messages`;
 
-        container.innerHTML = loadedEmails.map((e, idx) => `
-          <div class="inbox-card" onclick="summarizeSingleEmail(${idx})">
-            <div class="card-top">
-              <span>${escapeHtml(e.from.split('<')[0].replace(/"/g, ''))}</span>
-              <span style="font-size:0.7rem; color:var(--text-dim);">${escapeHtml(e.date ? e.date.split(' ').slice(1,4).join(' ') : '')}</span>
-            </div>
-            <div class="card-subject">${escapeHtml(e.subject)}</div>
-            <div class="card-snippet">${escapeHtml(e.snippet)}</div>
-            <div class="card-actions">
-              <button class="mini-btn" onclick="event.stopPropagation(); summarizeSingleEmail(${idx})">🤖 Summarize</button>
-            </div>
-          </div>
-        `).join('');
-
+        renderInboxFeed();
+        updateFilterCounts();
         updateAutoSchedule(loadedEmails);
 
       } catch (err) {
@@ -940,14 +1345,57 @@
       }
     }
 
+    function renderInboxFeed() {
+      const container = document.getElementById('inbox-feed');
+      if (!loadedEmails || loadedEmails.length === 0) return;
+
+      let list = loadedEmails;
+      if (currentFilter === 'priority') {
+        list = loadedEmails.filter(e => isEmailPriority(e).isMatch);
+      }
+
+      if (list.length === 0) {
+        container.innerHTML = `<div style="text-align:center; padding:30px 15px; color:var(--text-dim)">
+          <div style="font-size:1.8rem; margin-bottom:6px;">⭐</div>
+          <b>No VIP Priority Emails Found</b><br>
+          <span style="font-size:0.75rem;">Click <b>"⚙️ Rules"</b> to add keywords or star any email to pin it here.</span>
+        </div>`;
+        return;
+      }
+
+      container.innerHTML = list.map((e) => {
+        const prioInfo = isEmailPriority(e);
+        const isStarred = starredEmailIds.includes(e.id);
+        const originalIndex = loadedEmails.indexOf(e);
+
+        return `
+          <div class="inbox-card ${prioInfo.isMatch ? 'vip-card' : ''}" onclick="summarizeSingleEmail(${originalIndex})">
+            <div class="card-top">
+              <span>${escapeHtml(e.from.split('<')[0].replace(/"/g, ''))}</span>
+              <div style="display:flex; align-items:center; gap:6px;">
+                ${prioInfo.isMatch ? `<span class="badge badge-vip" style="font-size:0.6rem; margin-bottom:0;">★ VIP: ${escapeHtml(prioInfo.matchedKeyword)}</span>` : ''}
+                <button class="star-btn ${isStarred ? 'starred' : ''}" onclick="event.stopPropagation(); toggleStarEmail('${e.id}')" title="Mark as Important">★</button>
+              </div>
+            </div>
+            <div class="card-subject">${escapeHtml(e.subject)}</div>
+            <div class="card-snippet">${escapeHtml(e.snippet)}</div>
+            <div class="card-actions">
+              <span style="font-size:0.7rem; color:var(--text-dim);">${escapeHtml(e.date ? e.date.split(' ').slice(1,4).join(' ') : '')}</span>
+              <div style="display:flex; gap:4px;">
+                <button class="mini-btn" onclick="event.stopPropagation(); quickScheduleFromEmail(${originalIndex})">📅 Add Event</button>
+                <button class="mini-btn" onclick="event.stopPropagation(); summarizeSingleEmail(${originalIndex})">🤖 Summarize</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
     function searchInbox() {
       const q = document.getElementById('inbox-search').value.trim();
       loadEmails(q);
     }
 
-    // ============================================================
-    // AI SUMMARIZER & ASSISTANT INTELLIGENCE
-    // ============================================================
     // ============================================================
     // AI DEEP CONTEXTUAL SUMMARIZER & INTELLIGENCE
     // ============================================================
@@ -1051,18 +1499,20 @@
 
       const analysis = analyzeEmail(e);
       const sender = e.from.split('<')[0].replace(/"/g, '').trim();
+      const prio = isEmailPriority(e);
 
       const outputHTML = `
-        <div style="margin-bottom:6px;">
+        <div style="margin-bottom:6px; display:flex; align-items:center; gap:6px; flex-wrap:wrap;">
           <span class="badge ${analysis.badgeClass}">${analysis.importance}</span>
-          <b style="color:var(--cyan); font-size:0.92rem; margin-left:6px;">${analysis.category}</b>
+          ${prio.isMatch ? `<span class="badge badge-vip">★ VIP: ${escapeHtml(prio.matchedKeyword)}</span>` : ''}
+          <b style="color:var(--cyan); font-size:0.92rem;">${analysis.category}</b>
         </div>
         <div class="summary-card">
           • <b>Sender:</b> ${escapeHtml(sender)} &nbsp;·&nbsp; <i>${escapeHtml(e.date ? e.date.split(' ').slice(1,4).join(' ') : '')}</i><br>
           • <b>Subject:</b> ${escapeHtml(e.subject)}<br>
           • <b>Context &amp; Meaning:</b> ${escapeHtml(analysis.explanation)}<br>
           • <b>Tactical Action:</b> ${escapeHtml(analysis.action)}<br>
-          • <b>Raw Transmit Excerpt:</b> <span style="color:var(--text-dim); font-size:0.78rem;">${escapeHtml(e.snippet.slice(0, 160))}...</span>
+          • <b>Raw Excerpt:</b> <span style="color:var(--text-dim); font-size:0.78rem;">${escapeHtml(e.snippet.slice(0, 160))}...</span>
         </div>
       `;
 
@@ -1094,8 +1544,8 @@
         summaryText += `Item ${i+1} from ${sender}. ${analysis.context} `;
       });
 
-      html += `<div style="margin-top:8px; color:var(--cyan-bright); font-size:0.82rem;">• <b>Subsystem Status:</b> All defensive and scheduling channels operational.</div>`;
-      summaryText += `All defensive and monitoring subsystems remain at peak operational readiness.`;
+      html += `<div style="margin-top:8px; color:var(--cyan-bright); font-size:0.82rem;">• <b>Subsystem Status:</b> All defensive, calendar, and alert monitors operational.</div>`;
+      summaryText += `All defensive, calendar, and alert monitors remain operational.`;
 
       showTerminalOutput(html);
       speakText(summaryText);
@@ -1124,6 +1574,32 @@
         return;
       }
 
+      // Check for Calendar command
+      if (qLower.includes('open calendar') || qLower.includes('show calendar') || qLower.includes('view calendar')) {
+        openCalendarModal();
+        speakText("Displaying calendar matrix and tactical agenda.");
+        return;
+      }
+
+      // Check for Priority Emails filter
+      if (qLower.includes('priority email') || qLower.includes('important email') || qLower.includes('vip email')) {
+        setInboxFilter('priority');
+        const prioCount = loadedEmails.filter(e => isEmailPriority(e).isMatch).length;
+        showTerminalOutput(`<b>⭐ Priority Filter Engaged:</b> Displaying ${prioCount} VIP transmissions matching your priority keyword watchlist.`);
+        speakText(`Displaying ${prioCount} priority emails matching your rules.`);
+        return;
+      }
+
+      // Check for Add Priority Keyword: e.g. "add keyword google"
+      if (qLower.startsWith('add keyword') || qLower.startsWith('add priority keyword')) {
+        const kw = q.replace(/^(add keyword|add priority keyword)\s+/i, '').trim();
+        if (kw) {
+          addPriorityKeyword(kw);
+          showTerminalOutput(`<b>🏷️ Watchlist Updated:</b> "${escapeHtml(kw)}" added to Priority Keywords.`);
+          return;
+        }
+      }
+
       // Check for Briefing
       if (qLower.includes('briefing') || qLower.includes('morning') || qLower.includes('digest')) {
         await generateBriefing();
@@ -1144,9 +1620,9 @@
 
       // Check for Diagnostics
       if (qLower.includes('diagnostic') || qLower.includes('status')) {
-        const diag = `<b>🛡️ Subsystem Diagnostic:</b><br>• Core: OpenJarvis Autonomous Framework<br>• Auth: Google OAuth 2.0 Web Client Active<br>• Mailbox: ${userAccessToken ? 'Online & Ingesting' : 'Standby'}<br>• Vocal Engine: SpeechSynthesis v2.0 Operational`;
+        const diag = `<b>🛡️ Subsystem Diagnostic:</b><br>• Core: OpenJarvis Autonomous Framework v2.4<br>• Auth: Google OAuth 2.0 Web Client Active<br>• Mailbox: ${userAccessToken ? 'Online & Ingesting' : 'Standby'}<br>• Live Alerts: ${notificationsEnabled ? 'Active (15s polling)' : 'Disabled'}<br>• Vocal Engine: SpeechSynthesis v2.0 Operational`;
         showTerminalOutput(diag);
-        speakText("All diagnostics nominal, Sir. Communication telemetry and voice synthesis systems operating at one hundred percent.");
+        speakText("All diagnostics nominal, Sir. Telemetry, event monitors, and voice synthesis systems operating at peak readiness.");
         return;
       }
 
@@ -1166,7 +1642,6 @@
       });
 
       if (localMatches.length > 0) {
-        // Render instant response
         let outHtml = `<b>🎯 Located ${localMatches.length} Transmission(s) for "${escapeHtml(cleanTerm || q)}":</b><br>`;
         let speakResp = `Sir, I found ${localMatches.length} matching transmission in your inbox. `;
 
@@ -1191,19 +1666,25 @@
 
         // Highlight in left inbox feed too
         const container = document.getElementById('inbox-feed');
-        container.innerHTML = localMatches.map((e, idx) => `
-          <div class="inbox-card" onclick="summarizeSingleEmail(${loadedEmails.indexOf(e)})">
-            <div class="card-top">
-              <span>${escapeHtml(e.from.split('<')[0].replace(/"/g, ''))}</span>
-              <span style="font-size:0.7rem; color:var(--text-dim);">${escapeHtml(e.date ? e.date.split(' ').slice(1,4).join(' ') : '')}</span>
+        container.innerHTML = localMatches.map((e) => {
+          const prioInfo = isEmailPriority(e);
+          const isStarred = starredEmailIds.includes(e.id);
+          const originalIndex = loadedEmails.indexOf(e);
+          return `
+            <div class="inbox-card ${prioInfo.isMatch ? 'vip-card' : ''}" onclick="summarizeSingleEmail(${originalIndex})">
+              <div class="card-top">
+                <span>${escapeHtml(e.from.split('<')[0].replace(/"/g, ''))}</span>
+                <button class="star-btn ${isStarred ? 'starred' : ''}" onclick="event.stopPropagation(); toggleStarEmail('${e.id}')">★</button>
+              </div>
+              <div class="card-subject">${escapeHtml(e.subject)}</div>
+              <div class="card-snippet">${escapeHtml(e.snippet)}</div>
+              <div class="card-actions">
+                <span style="font-size:0.7rem; color:var(--text-dim);">${escapeHtml(e.date ? e.date.split(' ').slice(1,4).join(' ') : '')}</span>
+                <button class="mini-btn" onclick="event.stopPropagation(); summarizeSingleEmail(${originalIndex})">🤖 Summarize</button>
+              </div>
             </div>
-            <div class="card-subject">${escapeHtml(e.subject)}</div>
-            <div class="card-snippet">${escapeHtml(e.snippet)}</div>
-            <div class="card-actions">
-              <button class="mini-btn" onclick="event.stopPropagation(); summarizeSingleEmail(${loadedEmails.indexOf(e)})">🤖 Summarize</button>
-            </div>
-          </div>
-        `).join('');
+          `;
+        }).join('');
         return;
       }
 
@@ -1283,7 +1764,6 @@
     // EVENT SCHEDULER & ACTION ITEMS
     // ============================================================
     function handleScheduleCommand(text) {
-      // Clean query: e.g. "schedule meeting with Alex tomorrow at 3pm"
       let clean = text.replace(/^(schedule|add event|set reminder)\s+/i, '').trim();
       let title = clean || 'Scheduled Meeting';
       let date = new Date().toISOString().split('T')[0];
@@ -1296,7 +1776,6 @@
         title = title.replace(/\btomorrow\b/ig, '').trim();
       }
 
-      // Try matching time like 3pm, 15:00, 4:30 pm
       const timeMatch = clean.match(/(\d{1,2})(?::(\d{2}))?\s*(am|pm)?/i);
       if (timeMatch) {
         let hr = parseInt(timeMatch[1]);
@@ -1309,27 +1788,36 @@
       }
 
       title = title || 'Strategic Appointment';
-      addCustomEvent(title, date, time, 'Created via JARVIS vocal command');
+      addCustomEvent(title, date, time, 'Created via JARVIS vocal command', 'Meeting');
       
-      const vocalResp = `Sir, I have scheduled "${title}" for ${date} at ${time} and placed it on your agenda.`;
-      showTerminalOutput(`<b>📅 Event Scheduled:</b><br>• <b>Title:</b> ${escapeHtml(title)}<br>• <b>Date:</b> ${escapeHtml(date)}<br>• <b>Time:</b> ${escapeHtml(time)}<br>• <b>Status:</b> Added to Tactical Agenda &amp; Google Calendar`);
+      const vocalResp = `Sir, I have scheduled "${title}" for ${date} at ${time} and activated live alert monitoring.`;
+      showTerminalOutput(`<b>📅 Event Scheduled:</b><br>• <b>Title:</b> ${escapeHtml(title)}<br>• <b>Date:</b> ${escapeHtml(date)}<br>• <b>Time:</b> ${escapeHtml(time)}<br>• <b>Status:</b> Live Alert Active &amp; Added to Tactical Agenda`);
       speakText(vocalResp);
     }
 
-    function addCustomEvent(title, date, time, desc) {
-      const newEv = { id: Date.now(), title, date, time, desc: desc || '' };
+    function addCustomEvent(title, date, time, desc, category) {
+      const newEv = { 
+        id: Date.now(), 
+        title, 
+        date, 
+        time, 
+        desc: desc || '', 
+        category: category || 'Meeting' 
+      };
       customEvents.unshift(newEv);
       sessionStorage.setItem('jarvis_custom_events', JSON.stringify(customEvents));
       renderCustomEvents();
+      renderCalendarGrid();
     }
 
     function createManualEvent() {
       const title = document.getElementById('eventTitle').value.trim() || 'Tactical Meeting';
       const date = document.getElementById('eventDate').value || new Date().toISOString().split('T')[0];
       const time = document.getElementById('eventTime').value || '12:00';
+      const category = document.getElementById('eventCategory').value || 'Meeting';
       const desc = document.getElementById('eventDesc').value.trim();
 
-      addCustomEvent(title, date, time, desc);
+      addCustomEvent(title, date, time, desc, category);
       closeScheduleModal();
 
       // Open Google Calendar creation link in new tab
@@ -1338,8 +1826,18 @@
       const gcalUrl = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(title)}&dates=${startDateTime}/${endDateTime}&details=${encodeURIComponent(desc || 'Created via JARVIS Assistant')}`;
       window.open(gcalUrl, '_blank');
 
-      showTerminalOutput(`<b>📅 Event Created:</b> "${escapeHtml(title)}" on ${escapeHtml(date)} at ${escapeHtml(time)}. Google Calendar link synchronized.`);
+      showTerminalOutput(`<b>📅 Event Created:</b> "${escapeHtml(title)}" on ${escapeHtml(date)} at ${escapeHtml(time)}. Live alert armed.`);
       speakText(`Event ${title} scheduled for ${date} at ${time}.`);
+    }
+
+    function quickScheduleFromEmail(index) {
+      const e = loadedEmails[index];
+      if (!e) return;
+      document.getElementById('eventTitle').value = e.subject.slice(0, 50);
+      document.getElementById('eventDate').value = new Date().toISOString().split('T')[0];
+      document.getElementById('eventTime').value = '11:00';
+      document.getElementById('eventDesc').value = `Ref email from ${e.from}: ${e.snippet.slice(0, 100)}`;
+      openScheduleModal();
     }
 
     function renderCustomEvents() {
@@ -1350,11 +1848,14 @@
         html += customEvents.map(e => `
           <div class="schedule-item user-event">
             <div style="display:flex; justify-content:space-between; align-items:center;">
-              <b style="color:var(--cyan-bright)">★ ${escapeHtml(e.title)}</b>
+              <b style="color:var(--cyan-bright)">★ [${escapeHtml(e.category || 'Event')}] ${escapeHtml(e.title)}</b>
               <button class="mini-btn" style="border:none; color:var(--red);" onclick="deleteEvent(${e.id})">✕</button>
             </div>
             <span style="color:var(--text-main); font-size:0.75rem;">📅 ${escapeHtml(e.date)} at ${escapeHtml(e.time)}</span><br>
-            <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(e.title)}" target="_blank" style="color:var(--cyan); font-size:0.72rem; text-decoration:none;">🔗 Open in G-Calendar</a>
+            <div style="display:flex; justify-content:space-between; align-items:center; margin-top:4px;">
+              <a href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(e.title)}" target="_blank" style="color:var(--cyan); font-size:0.72rem; text-decoration:none;">🔗 G-Calendar</a>
+              <span style="font-size:0.68rem; color:var(--gold);">🔔 Alert Armed</span>
+            </div>
           </div>
         `).join('');
       }
@@ -1392,20 +1893,22 @@
       customEvents = customEvents.filter(e => e.id !== id);
       sessionStorage.setItem('jarvis_custom_events', JSON.stringify(customEvents));
       renderCustomEvents();
+      renderCalendarGrid();
     }
 
     function updateAutoSchedule(emails) {
       renderCustomEvents();
+      renderCalendarGrid();
     }
 
     function describeSchedule() {
       let count = customEvents.length;
       let text = `Sir, your tactical schedule contains ${count} user-defined appointments. `;
       if (customEvents.length > 0) {
-        text += `Upcoming: ${customEvents[0].title} on ${customEvents[0].date}. `;
+        text += `Next upcoming item: ${customEvents[0].title} on ${customEvents[0].date}. `;
       }
-      text += `Schedule scanner is actively indexing calendar invites from your connected inbox.`;
-      showTerminalOutput(`<b>📅 Work Schedule Scanner:</b><br>• Active Appointments: ${count}<br>• Autonomous scanner is cross-referencing incoming emails for booking dates and deadlines.`);
+      text += `Live alert subsystem is actively monitoring your agenda.`;
+      showTerminalOutput(`<b>📅 Work Schedule Scanner:</b><br>• Active Appointments: ${count}<br>• Live alerts armed for all scheduled meetings.`);
       speakText(text);
     }
 
@@ -1419,6 +1922,246 @@
 
     function closeScheduleModal() {
       document.getElementById('scheduleModal').classList.remove('open');
+    }
+
+    // ============================================================
+    // CALENDAR MATRIX IMPLEMENTATION
+    // ============================================================
+    function openCalendarModal() {
+      calDisplayDate = new Date();
+      renderCalendarGrid();
+      document.getElementById('calendarModal').classList.add('open');
+    }
+
+    function closeCalendarModal() {
+      document.getElementById('calendarModal').classList.remove('open');
+    }
+
+    function changeCalendarMonth(delta) {
+      calDisplayDate.setMonth(calDisplayDate.getMonth() + delta);
+      renderCalendarGrid();
+    }
+
+    function resetCalendarToToday() {
+      calDisplayDate = new Date();
+      calSelectedDayStr = new Date().toISOString().split('T')[0];
+      renderCalendarGrid();
+    }
+
+    function renderCalendarGrid() {
+      const year = calDisplayDate.getFullYear();
+      const month = calDisplayDate.getMonth();
+      const monthNames = ["January","February","March","April","May","June","July","August","September","October","November","December"];
+      
+      const monthTitle = document.getElementById('calMonthTitle');
+      if (monthTitle) monthTitle.innerText = `${monthNames[month]} ${year}`;
+
+      const grid = document.getElementById('calendarGrid');
+      if (!grid) return;
+
+      const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+      let html = dayNames.map(d => `<div class="cal-head-day">${d}</div>`).join('');
+
+      const firstDay = new Date(year, month, 1).getDay();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const daysInPrevMonth = new Date(year, month, 0).getDate();
+
+      const todayStr = new Date().toISOString().split('T')[0];
+
+      // Prev month trailing days
+      for (let i = firstDay - 1; i >= 0; i--) {
+        const d = daysInPrevMonth - i;
+        html += `<div class="cal-day-cell other-month">${d}</div>`;
+      }
+
+      // Current month days
+      for (let d = 1; d <= daysInMonth; d++) {
+        const dateStr = `${year}-${String(month + 1).padStart(2, '0')}-${String(d).padStart(2, '0')}`;
+        const isToday = dateStr === todayStr;
+        const isSelected = dateStr === calSelectedDayStr;
+        const dayEvents = customEvents.filter(e => e.date === dateStr);
+        const hasEvents = dayEvents.length > 0;
+
+        html += `
+          <div class="cal-day-cell ${isToday ? 'today' : ''} ${hasEvents ? 'has-events' : ''} ${isSelected ? 'selected' : ''}" onclick="selectCalendarDay('${dateStr}')">
+            <b>${d}</b>
+          </div>
+        `;
+      }
+
+      grid.innerHTML = html;
+      renderCalendarAgenda();
+    }
+
+    function selectCalendarDay(dateStr) {
+      calSelectedDayStr = dateStr;
+      renderCalendarGrid();
+    }
+
+    function renderCalendarAgenda() {
+      const listContainer = document.getElementById('calAgendaList');
+      const titleEl = document.getElementById('calAgendaTitle');
+      const countEl = document.getElementById('calEventCountBadge');
+      if (!listContainer) return;
+
+      const dayEvents = customEvents.filter(e => e.date === calSelectedDayStr);
+      titleEl.innerText = `Agenda for ${calSelectedDayStr}:`;
+      countEl.innerText = `${dayEvents.length} event(s)`;
+
+      if (dayEvents.length === 0) {
+        listContainer.innerHTML = '<span style="color:var(--text-dim); font-size:0.78rem;">No events scheduled for this day. Click "+ New Event" to schedule.</span>';
+        return;
+      }
+
+      listContainer.innerHTML = dayEvents.map(e => `
+        <div style="background:rgba(0,229,255,0.05); border:1px solid rgba(0,229,255,0.2); border-left:3px solid var(--cyan-bright); border-radius:4px; padding:6px 10px; display:flex; justify-content:space-between; align-items:center;">
+          <div>
+            <b style="color:#fff; font-size:0.85rem;">[${escapeHtml(e.category || 'Event')}] ${escapeHtml(e.title)}</b><br>
+            <span style="color:var(--cyan); font-size:0.75rem;">⏰ ${escapeHtml(e.time)}</span> &nbsp;
+            <span style="color:var(--text-dim); font-size:0.72rem;">${escapeHtml(e.desc || '')}</span>
+          </div>
+          <div style="display:flex; gap:6px;">
+            <a class="mini-btn" href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(e.title)}" target="_blank" style="text-decoration:none;">G-Cal</a>
+            <button class="mini-btn" style="border-color:var(--red); color:var(--red);" onclick="deleteEvent(${e.id})">✕</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    // ============================================================
+    // LIVE ALERT NOTIFICATION SYSTEM (Audio + Web Notification + HUD)
+    // ============================================================
+    function toggleNotificationSetting() {
+      notificationsEnabled = !notificationsEnabled;
+      const btn = document.getElementById('notif-btn');
+      if (notificationsEnabled) {
+        btn.innerText = '🔔 Alerts: Active';
+        btn.classList.add('active-glow');
+        if ('Notification' in window && Notification.permission !== 'granted') {
+          Notification.requestPermission();
+        }
+        showTerminalOutput('<b>System:</b> Live meeting and event alerts enabled.');
+        speakText('Alert notifications active, Sir.');
+      } else {
+        btn.innerText = '🔕 Alerts: Muted';
+        btn.classList.remove('active-glow');
+        showTerminalOutput('<b>System:</b> Meeting alert notifications muted.');
+      }
+    }
+
+    // Sci-Fi Sound Synthesizer Chime via Web Audio API
+    function playAlertChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime); // A5
+        osc.frequency.exponentialRampToValueAtTime(1320, audioCtx.currentTime + 0.12); // E6
+        gain.gain.setValueAtTime(0.35, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.35);
+        osc.start(audioCtx.currentTime);
+        osc.stop(audioCtx.currentTime + 0.35);
+
+        // Echo tone
+        setTimeout(() => {
+          try {
+            const osc2 = audioCtx.createOscillator();
+            const gain2 = audioCtx.createGain();
+            osc2.connect(gain2);
+            gain2.connect(audioCtx.destination);
+            osc2.type = 'triangle';
+            osc2.frequency.setValueAtTime(1174, audioCtx.currentTime); // D6
+            gain2.gain.setValueAtTime(0.3, audioCtx.currentTime);
+            gain2.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.4);
+            osc2.start(audioCtx.currentTime);
+            osc2.stop(audioCtx.currentTime + 0.4);
+          } catch(e) {}
+        }, 180);
+      } catch (e) {}
+    }
+
+    function checkUpcomingAlerts() {
+      if (!notificationsEnabled || customEvents.length === 0) return;
+
+      const now = new Date();
+      const todayStr = now.toISOString().split('T')[0];
+      const currentHours = now.getHours();
+      const currentMinutes = now.getMinutes();
+      const currentTimeInMins = currentHours * 60 + currentMinutes;
+
+      customEvents.forEach(ev => {
+        if (ev.date !== todayStr) return;
+        if (!ev.time) return;
+
+        const [h, m] = ev.time.split(':').map(Number);
+        const eventTimeInMins = h * 60 + m;
+        const diffMins = eventTimeInMins - currentTimeInMins;
+
+        // Alert when within 5 minutes or right at event time
+        if (diffMins >= 0 && diffMins <= 5 && !triggeredAlertIds.has(ev.id)) {
+          triggeredAlertIds.add(ev.id);
+          fireEventAlert(ev, diffMins);
+        }
+      });
+    }
+
+    function fireEventAlert(event, minsRemaining) {
+      currentAlertEvent = event;
+
+      // 1. Play futuristic audio chime
+      playAlertChime();
+
+      // 2. Desktop Web Notification (Shows outside browser window!)
+      if ('Notification' in window && Notification.permission === 'granted') {
+        try {
+          const notif = new Notification(`⚠️ JARVIS ALERT: ${event.title}`, {
+            body: `Scheduled for ${event.time} (${minsRemaining === 0 ? 'Starting now' : `In ${minsRemaining} mins`}). ${event.desc || ''}`,
+            icon: 'https://yashh077.github.io/jarvis-hologram-hud/favicon.ico'
+          });
+          notif.onclick = () => { window.focus(); };
+        } catch(e) {}
+      }
+
+      // 3. Holographic HUD Alert Modal
+      document.getElementById('alertEventTitle').innerText = event.title;
+      document.getElementById('alertEventTime').innerText = `${event.time} (${event.date})`;
+      document.getElementById('alertEventCountdown').innerText = minsRemaining === 0 ? 'STARTING NOW' : `STARTING IN ${minsRemaining} MIN`;
+      document.getElementById('alertEventNotes').innerText = event.desc ? `Notes: ${event.desc}` : 'Ready for execution.';
+      document.getElementById('alertModal').classList.add('open');
+
+      // 4. Vocal Warning
+      const vocalAlert = minsRemaining === 0 
+        ? `Attention, Sir. Priority schedule alert: Your ${event.category || 'meeting'} "${event.title}" is commencing right now.`
+        : `Attention, Sir. Your ${event.category || 'meeting'} "${event.title}" is scheduled to begin in ${minsRemaining} minutes.`;
+      
+      speakText(vocalAlert);
+    }
+
+    function triggerTestAlert() {
+      const sample = {
+        id: 'test_' + Date.now(),
+        title: 'Tactical Briefing & Engineering Review',
+        date: new Date().toISOString().split('T')[0],
+        time: `${String(new Date().getHours()).padStart(2,'0')}:${String(new Date().getMinutes()).padStart(2,'0')}`,
+        desc: 'Google Meet link verified. All telemetry nominal.',
+        category: 'Meeting'
+      };
+      fireEventAlert(sample, 0);
+    }
+
+    function dismissAlertModal() {
+      document.getElementById('alertModal').classList.remove('open');
+    }
+
+    function openAlertCalendarLink() {
+      if (currentAlertEvent) {
+        const url = `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${encodeURIComponent(currentAlertEvent.title)}`;
+        window.open(url, '_blank');
+      }
+      dismissAlertModal();
     }
 
     // ============================================================

@@ -36,6 +36,9 @@ class TestJarvisServer(unittest.TestCase):
         content = index_file.read_text(encoding="utf-8")
         self.assertIn("J.A.R.V.I.S.", content)
         self.assertIn("Google Identity Services", content)
+        self.assertIn("VIP KEYWORD WATCHLIST", content)
+        self.assertIn("TACTICAL CALENDAR", content)
+        self.assertIn("TACTICAL EVENT ALERT", content)
 
 
 if __name__ == "__main__":
